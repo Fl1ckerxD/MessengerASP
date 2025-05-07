@@ -1,4 +1,7 @@
+using Azure.Messaging;
+using CorpNetMessenger.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.EntityFrameworkCore;
 
 namespace MessengerASP
 {
@@ -13,6 +16,10 @@ namespace MessengerASP
                 options.ViewLocationFormats.Add("/Web/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
                 options.ViewLocationFormats.Add("/Web/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
             });
+
+            var conString = builder.Configuration.GetConnectionString("CorpNetMessenger") ??
+                throw new InvalidOperationException("Connection string 'CorpNetMessenger' not found.");
+            builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
