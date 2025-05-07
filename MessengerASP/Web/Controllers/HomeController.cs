@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using MessengerASP.Models;
+using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MessengerASP.Controllers
+namespace CorpNetMessenger.Web.Controllers
 {
     public class HomeController : Controller
     {

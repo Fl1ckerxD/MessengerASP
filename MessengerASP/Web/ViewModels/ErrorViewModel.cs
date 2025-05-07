@@ -1,4 +1,4 @@
-namespace MessengerASP.Models
+namespace CorpNetMessenger.Web.ViewModels
 {
     public class ErrorViewModel
     {

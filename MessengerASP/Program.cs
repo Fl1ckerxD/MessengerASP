@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc.Razor;
+
 namespace MessengerASP
 {
     public class Program
@@ -5,6 +7,12 @@ namespace MessengerASP
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddControllersWithViews().AddRazorOptions(options =>
+            {
+                options.ViewLocationFormats.Add("/Web/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
+                options.ViewLocationFormats.Add("/Web/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
+            });
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
