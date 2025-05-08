@@ -1,5 +1,6 @@
-using Azure.Messaging;
+using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,7 @@ namespace MessengerASP
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add services to the container.
             builder.Services.AddControllersWithViews().AddRazorOptions(options =>
             {
                 options.ViewLocationFormats.Add("/Web/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
@@ -21,7 +23,10 @@ namespace MessengerASP
                 throw new InvalidOperationException("Connection string 'CorpNetMessenger' not found.");
             builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
 
-            // Add services to the container.
+            builder.Services.AddIdentity<User, IdentityRole<string>>()
+                .AddEntityFrameworkStores<MessengerContext>()
+                .AddDefaultTokenProviders();
+
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -37,6 +42,7 @@ namespace MessengerASP
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapStaticAssets();

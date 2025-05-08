@@ -16,7 +16,6 @@ namespace CorpNetMessenger.Domain.Entities
         public string Title { get; set; } = null!;
 
         public virtual ICollection<User> Users { get; set; }
-
         public virtual ICollection<DepartmentPost> Departments { get; set; }
     }
 }

@@ -18,7 +18,6 @@ namespace CorpNetMessenger.Domain.Entities
 
         public virtual ICollection<Chat> Chats { get; set; }
         public virtual ICollection<User> Users { get; set; }
-
         public virtual ICollection<DepartmentPost> Posts { get; set; }
     }
 }

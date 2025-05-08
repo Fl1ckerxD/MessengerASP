@@ -5,7 +5,7 @@
         public int PostId { get; set; }
         public int DepartmentId { get; set; }
 
-        public Post Post { get; set; }
-        public Department Department { get; set; }
+        public virtual Post Post { get; set; } = null!;
+        public virtual Department Department { get; set; } = null!;
     }
 }

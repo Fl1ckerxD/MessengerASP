@@ -7,20 +7,21 @@ namespace CorpNetMessenger.Domain.Entities
         public Message()
         {
             Files = new HashSet<File>();
-            MessageUsers = new HashSet<MessageUser>();
+            ReadByUsers = new HashSet<MessageUser>();
         }
 
-        public int Id { get; set; }
-        public int ChatId { get; set; }
-        public int UserId { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [MaxLength(200)]
         public string Content { get; set; } = null!;
-        public DateTime Time { get; set; }
+        public DateTime SentAt { get; set; } = DateTime.UtcNow;
 
-        public virtual Chat Chat { get; set; } = null!;
+        public string UserId { get; set; } = null!;
+        public string ChatId { get; set; } = null!;
+
         public virtual User User { get; set; } = null!;
+        public virtual Chat Chat { get; set; } = null!;
         public virtual ICollection<File> Files { get; set; }
-        public virtual ICollection<MessageUser> MessageUsers { get; set; }
+        public virtual ICollection<MessageUser> ReadByUsers { get; set; }
     }
 }

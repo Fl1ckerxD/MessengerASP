@@ -10,15 +10,15 @@ namespace CorpNetMessenger.Domain.Entities
             Users = new HashSet<ChatUser>();
         }
 
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [MaxLength(50)]
-        public string? Theme { get; set; }
+        public string? Name { get; set; }
         public int? DepartmentId { get; set; }
 
         public virtual Department? Department { get; set; }
-        public virtual ICollection<Message> Messages { get; set; }
 
+        public virtual ICollection<Message> Messages { get; set; }
         public virtual ICollection<ChatUser> Users { get; set; }
     }
 }

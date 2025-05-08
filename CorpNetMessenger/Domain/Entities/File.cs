@@ -4,8 +4,8 @@ namespace CorpNetMessenger.Domain.Entities
 {
     public class File
     {
-        public int Id { get; set; }
-        public int MessageId { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string MessageId { get; set; } = null!;
 
         [MaxLength(100)]
         public string FileName { get; set; } = null!;

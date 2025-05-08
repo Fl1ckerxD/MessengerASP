@@ -1,9 +1,11 @@
 ﻿using CorpNetMessenger.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CorpNetMessenger.Infrastructure.Data
 {
-    public class MessengerContext : DbContext
+    public class MessengerContext : IdentityDbContext<User, IdentityRole<string>, string>
     {
         public virtual DbSet<Chat> Chats { get; set; } = null!;
         public virtual DbSet<Department> Departments { get; set; } = null!;
@@ -13,19 +15,20 @@ namespace CorpNetMessenger.Infrastructure.Data
         public virtual DbSet<Post> Posts { get; set; } = null!;
         public virtual DbSet<Status> Statuses { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
-        public virtual DbSet<UserType> UserTypes { get; set; } = null!;
+        //public virtual DbSet<UserType> UserTypes { get; set; } = null!;
 
         public MessengerContext(DbContextOptions<MessengerContext> options) : base(options)
         {
         }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer("Server=localhost;Database=CorpNetMessenger;Trusted_Connection=True;TrustServerCertificate=True;");
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    optionsBuilder.UseSqlServer("Server=localhost;Database=CorpNetMessenger;Trusted_Connection=True;TrustServerCertificate=True;");
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Chat>()
                 .HasOne(c => c.Department)
                 .WithMany(c => c.Chats)
@@ -66,13 +69,13 @@ namespace CorpNetMessenger.Infrastructure.Data
 
             modelBuilder.Entity<MessageUser>()
                 .HasOne(mu => mu.Message)
-                .WithMany(mu => mu.MessageUsers)
+                .WithMany(mu => mu.ReadByUsers)
                 .HasForeignKey(mu => mu.MessageId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
             modelBuilder.Entity<MessageUser>()
                 .HasOne(mu => mu.User)
-                .WithMany(mu => mu.MessageUsers)
+                .WithMany()
                 .HasForeignKey(mu => mu.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
@@ -106,10 +109,10 @@ namespace CorpNetMessenger.Infrastructure.Data
                 .WithMany(u => u.Users)
                 .HasForeignKey(u => u.StatusId);
 
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.UserType)
-                .WithMany(u => u.Users)
-                .HasForeignKey(u => u.UserTypeId);
+            //modelBuilder.Entity<User>()
+            //    .HasOne(u => u.UserType)
+            //    .WithMany(u => u.Users)
+            //    .HasForeignKey(u => u.UserTypeId);
         }
     }
 }
