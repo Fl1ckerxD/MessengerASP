@@ -1,4 +1,4 @@
-﻿using CorpNetMessenger.Domain.Interfaces;
+﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

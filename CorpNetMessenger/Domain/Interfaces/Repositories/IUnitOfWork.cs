@@ -1,6 +1,6 @@
 ﻿using CorpNetMessenger.Domain.Entities;
 
-namespace CorpNetMessenger.Domain.Interfaces
+namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {

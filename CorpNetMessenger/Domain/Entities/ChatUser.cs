@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace CorpNetMessenger.Domain.Entities
+﻿namespace CorpNetMessenger.Domain.Entities
 {
     public class ChatUser
     {

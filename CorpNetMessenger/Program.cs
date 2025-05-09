@@ -1,5 +1,10 @@
 using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
+using CorpNetMessenger.Domain.Interfaces.Services;
+using CorpNetMessenger.Domain.MappingProfiles;
 using CorpNetMessenger.Infrastructure.Data;
+using CorpNetMessenger.Infrastructure.Repositories;
+using CorpNetMessenger.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +33,11 @@ namespace MessengerASP
                 .AddDefaultTokenProviders();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddAutoMapper(typeof(AppMappingProfile));
+
+            // Add Scoped services to the container.
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
 
             var app = builder.Build();
 

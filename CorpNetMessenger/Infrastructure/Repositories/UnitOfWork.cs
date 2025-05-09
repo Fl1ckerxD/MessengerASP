@@ -1,5 +1,5 @@
 ﻿using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
 
 namespace CorpNetMessenger.Infrastructure.Repositories
