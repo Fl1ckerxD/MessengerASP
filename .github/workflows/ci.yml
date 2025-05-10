@@ -1,0 +1,30 @@
+name: Continuous Integration
+on: [push]
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        
+      - name: Install .NET 9.0.x
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Compile
+        run: dotnet build MessengerASP.sln
+
+      - name: Test
+        run: >
+          dotnet test
+          CorpNetMessenger.Tests/bin/Debug/**/CorpNetMessenger.Tests.dll
+          --logger "trx;LogFileName=CorpNetMessenger_TestResults.trx"
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4.6.2
+        if: ${{ always() }}
+        with:
+          name: CorpNetMessenger-test-results
+          path: ${{github.workspace}}/TestResults/CorpNetMessenger_TestResults.trx
