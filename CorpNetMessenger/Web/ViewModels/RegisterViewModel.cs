@@ -25,6 +25,7 @@ namespace CorpNetMessenger.Web.ViewModels
         public string Email { get; set; }
 
         [Display(Name = "Телефон")]
+        [Phone]
         public string? PhoneNumber { get; set; }
 
         [Required]

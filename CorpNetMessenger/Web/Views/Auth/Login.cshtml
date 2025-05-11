@@ -16,9 +16,12 @@
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
 
-    <div class="form-group form-check">
-        <input asp-for="RememberMe" class="form-check-input" />
-        <label asp-for="RememberMe" class="form-check-label">Запомнить меня</label>
+    <div class="form-group form-check d-flex justify-content-between align-items-center">
+        <div>
+            <input asp-for="RememberMe" class="form-check-input" />
+            <label asp-for="RememberMe" class="form-check-label">Запомнить меня</label>
+        </div>
+        <a asp-action="Register">Регистрация</a>
     </div>
 
     <button type="submit" class="btn btn-primary">Войти</button>

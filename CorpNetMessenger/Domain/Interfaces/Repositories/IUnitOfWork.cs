@@ -7,7 +7,7 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
         IRepository<Chat> Chats { get; }
         IRepository<Department> Departments { get; }
         IRepository<Entities.File> Files { get; }
-        IRepository<Message> Messages { get; }
+        IMessageRepository Messages { get; }
         IRepository<Post> Posts { get; }
         IRepository<Status> Statuses { get; }
         IRepository<User> Users { get; }

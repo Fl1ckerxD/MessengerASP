@@ -1,24 +1,16 @@
-﻿using AutoMapper;
-using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Services;
+﻿using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CorpNetMessenger.Web.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IMapper _mapper;
         private readonly IAccountService _accountService;
-        private readonly SignInManager<User> _signInManager;
 
-        public AuthController(IMapper mapper, IAccountService accountService,
-            SignInManager<User> signInManager)
+        public AuthController(IAccountService accountService)
         {
-            _mapper = mapper;
             _accountService = accountService;
-            _signInManager = signInManager;
         }
 
         public IActionResult Register() => View();
@@ -73,7 +65,7 @@ namespace CorpNetMessenger.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            await _accountService.Logout();
             return RedirectToAction("Index", "Home");
         }
     }

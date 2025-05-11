@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Services;
+﻿using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Controllers;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -11,15 +9,6 @@ namespace CorpNetMessenger.Tests.Controllers
 {
     public class AuthControllerTests
     {
-        private Mock<SignInManager<User>> _signInManagerMock;
-
-        public AuthControllerTests()
-        {
-            var userStore = new Mock<IUserStore<User>>();
-            var userManager = new Mock<UserManager<User>>(userStore.Object, null, null, null, null, null, null, null, null);
-            _signInManagerMock = new Mock<SignInManager<User>>(userManager.Object, Mock.Of<Microsoft.AspNetCore.Http.IHttpContextAccessor>(), Mock.Of<Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<User>>(), null, null, null, null);
-        }
-
         [Fact]
         public async Task Login_Post_SuccessfulLogin_RedirectsToHome()
         {
@@ -27,7 +16,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Login(It.IsAny<LoginViewModel>()))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
 
-            var controller = new AuthController(Mock.Of<IMapper>(), accountServiceMock.Object, _signInManagerMock.Object);
+            var controller = new AuthController(accountServiceMock.Object);
             var model = new LoginViewModel();
 
             var result = await controller.Login(model);
@@ -44,7 +33,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Login(It.IsAny<LoginViewModel>()))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Failed);
 
-            var controller = new AuthController(Mock.Of<IMapper>(), accountServiceMock.Object, _signInManagerMock.Object);
+            var controller = new AuthController(accountServiceMock.Object);
             var model = new LoginViewModel();
             
             var result = await controller.Login(model);
@@ -61,7 +50,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Register(It.IsAny<RegisterViewModel>()))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var controller = new AuthController(Mock.Of<IMapper>(), accountServiceMock.Object, _signInManagerMock.Object);
+            var controller = new AuthController(accountServiceMock.Object);
             var model = new RegisterViewModel();
 
             var result = await controller.Register(model);
@@ -78,7 +67,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Register(It.IsAny<RegisterViewModel>()))
                 .ReturnsAsync(IdentityResult.Failed(errors));
 
-            var controller = new AuthController(Mock.Of<IMapper>(), accountServiceMock.Object, _signInManagerMock.Object);
+            var controller = new AuthController(accountServiceMock.Object);
             var model = new RegisterViewModel();
 
             var result = await controller.Register(model);

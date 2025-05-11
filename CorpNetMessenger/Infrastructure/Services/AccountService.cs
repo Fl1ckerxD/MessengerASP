@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
@@ -13,7 +12,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
-        public AccountService(IMapper mapper,UserManager<User> userManager, 
+        public AccountService(IMapper mapper, UserManager<User> userManager, 
             SignInManager<User> signInManager)
         {
             _mapper = mapper;
@@ -30,9 +29,9 @@ namespace CorpNetMessenger.Infrastructure.Services
                 lockoutOnFailure: false);
         }
 
-        public void Logout(RegisterDTO user)
+        public async Task Logout()
         {
-            throw new NotImplementedException();
+            await _signInManager.SignOutAsync();
         }
 
         public async Task<IdentityResult> Register(RegisterViewModel model)
