@@ -10,18 +10,19 @@ namespace CorpNetMessenger.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IUnitOfWork _unitOfWork;
+        //private readonly IUnitOfWork _unitOfWork;
 
         public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork)
         {
             _logger = logger;
-            _unitOfWork = unitOfWork;
+            //_unitOfWork = unitOfWork;
         }
 
         public async Task<IActionResult> Index()
         {
-            var messages = await _unitOfWork.Messages.GetChatMessagesAsync();
-            return View(messages);
+            //var messages = await _unitOfWork.Messages.GetChatMessagesAsync();
+            //return View(messages);
+            return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -12,10 +12,15 @@ namespace CorpNetMessenger.Infrastructure.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task SaveMessage(string content, string userId)
+        /// <summary>
+        /// Сохранение сообщения в БД
+        /// </summary>
+        /// <param name="content">Текст сообщения</param>
+        /// <param name="userId">Id пользователя отправившего сообщение</param>
+        /// <param name="chatId">Чат в который было отправлено сообщение</param>
+        /// <returns></returns>
+        public async Task SaveMessage(string content, string userId, string chatId)
         {
-            var chatId = "21604bf9-e8d7-41e2-9fc3-0b5f0796f5b3";
-            //var chat = new Chat();
             await _unitOfWork.Messages.AddAsync(new Message
             {
                 ChatId = chatId,

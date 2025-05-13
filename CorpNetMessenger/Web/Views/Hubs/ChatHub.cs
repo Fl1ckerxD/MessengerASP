@@ -14,14 +14,20 @@ namespace CorpNetMessenger.Web.Views.Hubs
             _logger = logger;
         }
 
-        public async Task Send(string message, IChatService chatService)
+        public async Task Enter(string chatId)
+        {
+            var user = Context.User;
+            await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
+        }
+
+        public async Task Send(string message, string chatId, IChatService chatService)
         {
             var user = Context.User;
             string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
             try
             {
-                await chatService.SaveMessage(message, userId);
-                await Clients.All.SendAsync("Receive", message, user.Identity.Name, DateTime.Now);
+                await chatService.SaveMessage(message, userId, chatId);
+                await Clients.Group(chatId).SendAsync("Receive", message, user.Identity.Name, DateTime.Now);
             }
             catch (Exception ex)
             {

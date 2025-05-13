@@ -12,9 +12,14 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<MessageViewModel>> GetChatMessagesAsync()
+        public async Task<IEnumerable<MessageViewModel>> GetChatMessagesAsync(string chatId)
         {
-            return await _context.Messages.Include(m => m.User)
+            if (!_context.Chats.Any(c => c.Id == chatId)) // Проверка на наличие чата с таким id
+                throw new Exception("Такого чата нет");
+
+            return await _context.Messages // Получение сообщений из определенного чата 
+                .Where(m => m.ChatId == chatId)
+                .Include(m => m.User)
                 .Select(m => new MessageViewModel
                 {
                     Content = m.Content,

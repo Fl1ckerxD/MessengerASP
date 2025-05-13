@@ -2,6 +2,6 @@
 {
     public interface IChatService
     {
-        Task SaveMessage(string content, string userId);
+        Task SaveMessage(string content, string userId, string chatId);
     }
 }

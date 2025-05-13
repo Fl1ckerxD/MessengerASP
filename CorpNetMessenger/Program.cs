@@ -72,7 +72,14 @@ namespace MessengerASP
 
             app.MapStaticAssets();
 
-            app.MapHub<ChatHub>("/chat");
+            app.MapHub<ChatHub>("/chatHub");
+
+            app.MapControllerRoute(
+                name: "chat",
+                pattern: "chat/{id}",
+                defaults: new { controller = "Chat", action = "Index" }
+                );
+
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
