@@ -4,73 +4,31 @@
 }
 
 <div>
-    Введите сообщение:<br />
-    <input type="text" id="message" placeholder="Сообщение:"/><br /><br />
-    <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
+        <input type="file" id="fileInput" style="display: none;" multiple />
+        <button id="addFileBtn">📎 Добавить файл</button>
+
+        <ul id="fileList" class="file-list"></ul>
+
+        <textarea id="message" placeholder="Введите сообщение..."></textarea>
+        <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
 </div>
 <div id="chatroom">
     @foreach (var message in Model)
     {
         <p>
-            <b>@message.SentAt </b>
-            <b>@message.UserName: </b>
+            <b>@message.SentAt @message.UserName: </b>
             @message.Content
+            @if (message.Attachments.Count() > 0)
+            {
+                @foreach (var attachment in message.Attachments)
+                {
+                    <a href="/api/messages/download/@attachment.Id">
+                        @attachment.Name
+                    </a>
+                }
+            }
         </p>
     }
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
-<script>
-    const hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("/chatHub")
-        .build();
-
-    document.getElementById("sendBtn").addEventListener("click", function () {
-        const message = document.getElementById("message").value;
-        const chatId = getChatIdFromUrl();
-
-        hubConnection.invoke("Send", message, chatId) // отправка данных серверу
-            .catch(function (err) {
-                return console.error(err.toString());
-            });
-    });
-    // получение данных с сервера
-    hubConnection.on("Receive", function (message, userName, dateUtc) {
-
-        // создаем элемент <b> для имени пользователя
-        const dateElem = document.createElement("b");
-        dateElem.textContent = `${dateUtc} `;
-
-        // создаем элемент <b> для имени пользователя
-        const userNameElem = document.createElement("b");
-        userNameElem.textContent = `${userName}: `;
-
-        // создает элемент <p> для сообщения пользователя
-        const elem = document.createElement("p");
-        elem.appendChild(dateElem);
-        elem.appendChild(userNameElem);
-        elem.appendChild(document.createTextNode(message));
-
-        // добавляем новый элемент в самое начало
-        // для этого сначала получаем первый элемент
-        //const firstElem = document.getElementById("chatroom").firstChild;
-        document.getElementById("chatroom").appendChild(elem);
-    });
-
-        function getChatIdFromUrl() {
-        const path = window.location.pathname;
-        const parts = path.split('/');
-        return parts[parts.length - 1];
-    }
-
-    hubConnection.start()
-        .then(function () {
-            document.getElementById("sendBtn").disabled = false;
-            const chatId = getChatIdFromUrl();
-            hubConnection.invoke("Enter", chatId);
-        })
-        .catch(function (err) {
-            return console.error(err.toString());
-        });
-
-
-</script>
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
+<script src="~/js/chat.js"></script>

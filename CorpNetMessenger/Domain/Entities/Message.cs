@@ -6,7 +6,7 @@ namespace CorpNetMessenger.Domain.Entities
     {
         public Message()
         {
-            Files = new HashSet<File>();
+            Attachments = new HashSet<Attachment>();
             ReadByUsers = new HashSet<MessageUser>();
         }
 
@@ -21,7 +21,7 @@ namespace CorpNetMessenger.Domain.Entities
 
         public virtual User User { get; set; } = null!;
         public virtual Chat Chat { get; set; } = null!;
-        public virtual ICollection<File> Files { get; set; }
+        public virtual ICollection<Attachment> Attachments { get; set; }
         public virtual ICollection<MessageUser> ReadByUsers { get; set; }
     }
 }

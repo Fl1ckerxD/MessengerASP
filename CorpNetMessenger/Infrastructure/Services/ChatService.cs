@@ -1,4 +1,5 @@
-﻿using CorpNetMessenger.Domain.Entities;
+﻿using CorpNetMessenger.Domain.DTOs;
+using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 
@@ -19,14 +20,17 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="userId">Id пользователя отправившего сообщение</param>
         /// <param name="chatId">Чат в который было отправлено сообщение</param>
         /// <returns></returns>
-        public async Task SaveMessage(string content, string userId, string chatId)
+        public async Task SaveMessage(ChatMessageDto request, string userId)
         {
-            await _unitOfWork.Messages.AddAsync(new Message
+            var message = new Message
             {
-                ChatId = chatId,
-                Content = content != null ? content.Trim() : "",
-                UserId = userId
-            });
+                ChatId = request.ChatId,
+                Content = request.Text != null ? request.Text.Trim() : "",
+                UserId = userId,
+                Attachments = request.Files
+            };
+
+            await _unitOfWork.Messages.AddAsync(message);
             await _unitOfWork.SaveAsync();
         }
     }

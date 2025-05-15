@@ -20,11 +20,17 @@ namespace CorpNetMessenger.Infrastructure.Repositories
             return await _context.Messages // Получение сообщений из определенного чата 
                 .Where(m => m.ChatId == chatId)
                 .Include(m => m.User)
+                .Include(m => m.Attachments)
                 .Select(m => new MessageViewModel
                 {
                     Content = m.Content,
                     SentAt = m.SentAt,
-                    UserName = $"{m.User.LastName} {m.User.Name}"
+                    UserName = $"{m.User.LastName} {m.User.Name}",
+                    Attachments = m.Attachments.Select(c => new AttachmentViewModel
+                    {
+                        Id = c.Id.ToString(),
+                        Name = c.FileName
+                    })
                 }).OrderBy(m => m.SentAt).ToListAsync();
         }
     }

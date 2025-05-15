@@ -2,16 +2,14 @@
 
 namespace CorpNetMessenger.Domain.Entities
 {
-    public class File
+    public class Attachment
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string MessageId { get; set; } = null!;
 
-        [MaxLength(100)]
+        [MaxLength(255)]
         public string FileName { get; set; } = null!;
-
-        [MaxLength(10)]
-        public string FileExtension { get; set; } = null!;
+        public string ContentType { get; set; } = null!;
         public byte[] FileData { get; set; } = null!;
         public long FileLength { get; set; }
 

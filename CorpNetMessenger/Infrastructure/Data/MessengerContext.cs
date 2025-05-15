@@ -9,21 +9,16 @@ namespace CorpNetMessenger.Infrastructure.Data
     {
         public virtual DbSet<Chat> Chats { get; set; } = null!;
         public virtual DbSet<Department> Departments { get; set; } = null!;
-        public virtual DbSet<Domain.Entities.File> Files { get; set; } = null!;
+        public virtual DbSet<Attachment> Attachments { get; set; } = null!;
         public virtual DbSet<Message> Messages { get; set; } = null!;
         public virtual DbSet<MessageUser> MessageUsers { get; set; } = null!;
         public virtual DbSet<Post> Posts { get; set; } = null!;
         public virtual DbSet<Status> Statuses { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
-        //public virtual DbSet<UserType> UserTypes { get; set; } = null!;
 
         public MessengerContext(DbContextOptions<MessengerContext> options) : base(options)
         {
         }
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    optionsBuilder.UseSqlServer("Server=localhost;Database=CorpNetMessenger;Trusted_Connection=True;TrustServerCertificate=True;");
-        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,9 +44,9 @@ namespace CorpNetMessenger.Infrastructure.Data
                 .HasForeignKey(cu => cu.ChatId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            modelBuilder.Entity<Domain.Entities.File>()
+            modelBuilder.Entity<Attachment>()
                 .HasOne(f => f.Message)
-                .WithMany(f => f.Files)
+                .WithMany(f => f.Attachments)
                 .HasForeignKey(f => f.MessageId);
 
             modelBuilder.Entity<Message>()
@@ -108,11 +103,6 @@ namespace CorpNetMessenger.Infrastructure.Data
                 .HasOne(u => u.Status)
                 .WithMany(u => u.Users)
                 .HasForeignKey(u => u.StatusId);
-
-            //modelBuilder.Entity<User>()
-            //    .HasOne(u => u.UserType)
-            //    .WithMany(u => u.Users)
-            //    .HasForeignKey(u => u.UserTypeId);
         }
     }
 }

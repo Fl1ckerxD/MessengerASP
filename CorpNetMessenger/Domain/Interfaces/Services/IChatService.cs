@@ -1,7 +1,9 @@
-﻿namespace CorpNetMessenger.Domain.Interfaces.Services
+﻿using CorpNetMessenger.Domain.DTOs;
+
+namespace CorpNetMessenger.Domain.Interfaces.Services
 {
     public interface IChatService
     {
-        Task SaveMessage(string content, string userId, string chatId);
+        Task SaveMessage(ChatMessageDto request, string userId);
     }
 }
