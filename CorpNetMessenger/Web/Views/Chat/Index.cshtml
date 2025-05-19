@@ -4,30 +4,37 @@
 }
 
 <div>
-        <input type="file" id="fileInput" style="display: none;" multiple />
-        <button id="addFileBtn">📎 Добавить файл</button>
+    <input type="file" id="fileInput" style="display: none;" multiple />
+    <button id="addFileBtn">📎 Добавить файл</button>
 
-        <ul id="fileList" class="file-list"></ul>
+    <ul id="fileList" class="file-list"></ul>
 
-        <textarea id="message" placeholder="Введите сообщение..."></textarea>
-        <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
+    <textarea id="message" placeholder="Введите сообщение..."></textarea>
+    <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
 </div>
 <div id="chatroom">
     @foreach (var message in Model)
     {
-        <p>
-            <b>@message.SentAt @message.UserName: </b>
-            @message.Content
+        <div class="message-container" data-message-id="@message.Id">
+            <div class="message-avatar"></div>
+            <div class="message-meta">
+                <label>@message.SentAt</label>
+                <strong>@message.UserName</strong>
+            </div>
+            <p class="message-text">@message.Content</p>
             @if (message.Attachments.Count() > 0)
             {
-                @foreach (var attachment in message.Attachments)
-                {
-                    <a href="/api/messages/download/@attachment.Id">
-                        @attachment.Name
-                    </a>
-                }
+                <div class="files">
+                    @foreach (var attachment in message.Attachments)
+                    {
+                        <a href="/api/messages/download/@attachment.Id">
+                            @attachment.Name
+                        </a>
+                    }
+                </div>
             }
-        </p>
+            <button class="editBtn">Редактировать</button>
+        </div>
     }
 </div>
 <script src="~/js/signalr/dist/browser/signalr.js"></script>

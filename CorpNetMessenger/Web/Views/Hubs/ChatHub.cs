@@ -1,8 +1,6 @@
-﻿using CorpNetMessenger.Domain.DTOs;
-using CorpNetMessenger.Domain.Interfaces.Services;
+﻿using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Views.Hubs
 {
@@ -10,11 +8,11 @@ namespace CorpNetMessenger.Web.Views.Hubs
     public class ChatHub : Hub
     {
         private readonly ILogger<ChatHub> _logger;
-        //private readonly IChatService _chatService;
+        private readonly IChatService _chatService;
         public ChatHub(ILogger<ChatHub> logger, IChatService chatService)
         {
             _logger = logger;
-            //_chatService = chatService;
+            _chatService = chatService;
         }
 
         public async Task Enter(string chatId)
@@ -23,19 +21,11 @@ namespace CorpNetMessenger.Web.Views.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
         }
 
-        //public async Task Send(string message, List<AttachmentDto> files, string chatId)
-        //{
-        //    var user = Context.User;
-        //    string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        //    try
-        //    {
-        //        //await _chatService.SaveMessage(message, userId, chatId);
-        //        await Clients.Group(chatId).SendAsync("Receive", message, user.Identity.Name, DateTime.Now);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Ошибка сохранения сообщения в бд");
-        //    }
-        //}
+        public async Task EditMessage(string messageId, string newText, string chatId)
+        {
+            var isEdited = await _chatService.EditMessage(messageId, newText);
+            if (isEdited)
+                Clients.Group(chatId).SendAsync("UpdateMessage", messageId, newText);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿// подключение к хабу на сервере
+﻿// создание объекта для подключения
 const hubConnection = new signalR.HubConnectionBuilder()
     .withUrl("/chatHub")
     .build();
@@ -6,7 +6,7 @@ const hubConnection = new signalR.HubConnectionBuilder()
 // кнопка должна быть не активной пока не будет подключения к хабу
 document.getElementById("sendBtn").disabled = true;
 
-// получение данных с сервера
+// получение нового сообщения
 hubConnection.on("Receive", function (message, attachments, userName, dateUtc) {
     // создаем элемент <b> для первой части сообщения
     const firstPartElem = document.createElement("b");
@@ -29,6 +29,17 @@ hubConnection.on("Receive", function (message, attachments, userName, dateUtc) {
     document.getElementById("chatroom").appendChild(elem);
 });
 
+// получение отредактированного сообщения
+hubConnection.on("UpdateMessage", function (messageId, newText) {
+    const messageElem = document.querySelector(`[data-message-id="${messageId}"]`);
+
+    if (messageElem) {
+        // обновляем текст
+        messageElem.querySelector(".message-text").textContent = newText
+    }
+});
+
+// подключение к хабу на сервере 
 hubConnection.start()
     .then(function () {
         document.getElementById("sendBtn").disabled = false; // активируем кнопку отправления сообщения
@@ -94,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fileList.appendChild(li);
     }
 
+    // удаление файла из списка
     function removeFile(fileId) {
         const index = addedFiles.findIndex(f => f.id === fileId);
         if (index !== -1) {
@@ -106,39 +118,75 @@ document.addEventListener('DOMContentLoaded', () => {
         return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
     }
 
+    // отправление сообщение на сервер
     document.getElementById("sendBtn").addEventListener("click", async function () {
-        const message = document.getElementById("message").value;
-        const files = addedFiles.map(item => item.file)
+        const textarea = document.getElementById("message");
+        const messageText = textarea.value.trim();
         const chatId = getChatIdFromUrl();
 
-        if (!message && addedFiles.length === 0) {
-            alert("Введите сообщение или добавьте файл");
-            return;
-        }
+        if (!messageText) return;
 
-        const formData = new FormData();
-        formData.append("message", message);
-        formData.append("chatId", chatId);
+        const messageId = textarea.dataset.editingMessageId;
 
-        // Добавляем все файлы в formData под ключом "files"
-        for (let i = 0; i < files.length; i++) {
-            formData.append("files", files[i]);
-        }
+        if (messageId) {
+            // режим редактирования
+            await hubConnection.invoke("EditMessage", messageId, messageText, chatId);
 
-        const response = await fetch("/api/messages/send", {
-            method: "POST",
-            body: formData
-        });
-
-        if (response.ok) {
-            // Очистка полей
-            document.getElementById("message").value = "";
+            // очистка состояние редактирования
+            delete textarea.dataset.editingMessageId;
+            textarea.value = "";
             addedFiles = [];
             document.getElementById("fileList").innerHTML = "";
         }
         else {
-            alert("Ошибка при отправке");
+            // режим нового сообщения
+            const files = addedFiles.map(item => item.file)
+
+            if (!messageText && addedFiles.length === 0) {
+                alert("Введите сообщение или добавьте файл");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("message", messageText);
+            formData.append("chatId", chatId);
+
+            // Добавляем все файлы в formData под ключом "files"
+            for (let i = 0; i < files.length; i++) {
+                formData.append("files", files[i]);
+            }
+
+            const response = await fetch("/api/messages/send", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                // Очистка полей
+                textarea.value = "";
+                addedFiles = [];
+                document.getElementById("fileList").innerHTML = "";
+            }
+            else {
+                alert("Ошибка при отправке");
+            }
         }
+    });
+
+    const editBtns = document.querySelectorAll(".editBtn");
+    editBtns.forEach(editBtn => {
+        // редактирование сообщения
+        editBtn.addEventListener("click", () => {
+            const messageElem = editBtn.closest("[data-message-id]");
+            const messageId = messageElem.getAttribute("data-message-id");
+
+            const messageText = messageElem.querySelector(".message-text").textContent.trim();
+            const textarea = document.getElementById("message");
+
+            textarea.value = messageText;
+
+            textarea.dataset.editingMessageId = messageId;
+        });
     });
 });
 

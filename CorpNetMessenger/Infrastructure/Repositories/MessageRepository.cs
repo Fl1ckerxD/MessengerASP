@@ -23,6 +23,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .Include(m => m.Attachments)
                 .Select(m => new MessageViewModel
                 {
+                    Id = m.Id,
                     Content = m.Content,
                     SentAt = m.SentAt,
                     UserName = $"{m.User.LastName} {m.User.Name}",

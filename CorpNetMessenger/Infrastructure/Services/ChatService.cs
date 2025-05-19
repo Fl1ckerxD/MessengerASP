@@ -33,5 +33,23 @@ namespace CorpNetMessenger.Infrastructure.Services
             await _unitOfWork.Messages.AddAsync(message);
             await _unitOfWork.SaveAsync();
         }
+
+        /// <summary>
+        /// Редактирование сообщения
+        /// </summary>
+        /// <param name="messageId">Id конкретного сообщения для редактирования</param>
+        /// <param name="newText">Отредактированный текст</param>
+        /// <returns>Возвращает true если сообщение было отредактировано иначе false</returns>
+        public async Task<bool> EditMessage(string messageId, string newText)
+        {
+            var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+
+            if (message == null) return false;
+            if (string.IsNullOrWhiteSpace(newText)) return false;
+
+            message.Content = newText;
+            await _unitOfWork.SaveAsync();
+            return true;
+        }
     }
 }
