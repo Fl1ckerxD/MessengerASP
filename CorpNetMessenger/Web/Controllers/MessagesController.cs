@@ -2,13 +2,15 @@
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
-using CorpNetMessenger.Web.Views.Hubs;
+using CorpNetMessenger.Web.Hubs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class MessagesController : Controller
@@ -46,6 +48,17 @@ namespace CorpNetMessenger.Web.Controllers
 
             var user = HttpContext.User;
             string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var isInChat = await _chatService.UserInChat(chatId, userId);
+            if (!isInChat)
+                return StatusCode(403, "Вы не состоите в этом чате");
+
+            if (string.IsNullOrWhiteSpace(message))
+                return BadRequest("Сообщение не может быть пустым");
+
+            if (message.Length > 200)
+                return BadRequest("Сообщение превышает 200 символов");
+
             try
             {
                 await _chatService.SaveMessage(request, userId);
@@ -59,11 +72,13 @@ namespace CorpNetMessenger.Web.Controllers
                         FileName = attachment.FileName,
                     });
                 }
-                await _hubContext.Clients.Group(request.ChatId).SendAsync("Receive", request.Text, attachmentsDto, user.Identity.Name, DateTime.Now);
+                await _hubContext.Clients.Group(request.ChatId)
+                    .SendAsync("Receive", request.Text, attachmentsDto, user.Identity.Name, DateTime.Now);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка сохранения сообщения в бд");
+                _logger.LogError(ex, "Ошибка при сохранении сообщения");
+                return StatusCode(500, "Внутренняя ошибка сервера");
             }
             return Ok();
         }
@@ -76,17 +91,19 @@ namespace CorpNetMessenger.Web.Controllers
 
             foreach (var file in files)
             {
+                if (file.Length > 10 * 1024 * 1024) // 10 MB
+                    throw new ArgumentException("Файл слишком большой");
+
                 using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
 
-                var attachment = new Attachment
+                result.Add(new Attachment
                 {
                     FileName = file.FileName,
                     ContentType = file.ContentType,
                     FileData = memoryStream.ToArray(),
                     FileLength = file.Length
-                };
-                result.Add(attachment);
+                });
             }
             return result;
         }

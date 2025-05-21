@@ -3,6 +3,7 @@ using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace CorpNetMessenger.Tests.Services
@@ -23,7 +24,7 @@ namespace CorpNetMessenger.Tests.Services
         {
             var model = new LoginViewModel { UserName = "test", Password = "password", RememberMe = true };
 
-            var accountService = new AccountService(Mock.Of<IMapper>(), _userManagerMock.Object, _signInManagerMock.Object);
+            var accountService = new AccountService(Mock.Of<IMapper>(), _userManagerMock.Object, _signInManagerMock.Object, Mock.Of<ILogger<AccountService>>());
 
             await accountService.Login(model);
 

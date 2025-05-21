@@ -5,7 +5,7 @@ using CorpNetMessenger.Domain.MappingProfiles;
 using CorpNetMessenger.Infrastructure.Data;
 using CorpNetMessenger.Infrastructure.Repositories;
 using CorpNetMessenger.Infrastructure.Services;
-using CorpNetMessenger.Web.Views.Hubs;
+using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +38,13 @@ namespace MessengerASP
             })
                 .AddEntityFrameworkStores<MessengerContext>()
                 .AddDefaultTokenProviders();
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+            });
 
             builder.Services.ConfigureApplicationCookie(options =>
             {

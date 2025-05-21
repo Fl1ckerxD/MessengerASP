@@ -39,6 +39,22 @@ hubConnection.on("UpdateMessage", function (messageId, newText) {
     }
 });
 
+// получение ошибок
+hubConnection.on("Error", displayError);
+
+function displayError(error) {
+    const errorElem = document.createElement("span");
+    errorElem.textContent = error;
+    errorElem.style.color = "red"; // Устанавливаем цвет текста
+
+    document.getElementById("chatroom").appendChild(errorElem);
+
+    // Удаляем через 5 секунд
+    setTimeout(() => {
+        chatroom.removeChild(errorElem);
+    }, 5000);
+};
+
 // подключение к хабу на сервере 
 hubConnection.start()
     .then(function () {
@@ -168,7 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById("fileList").innerHTML = "";
             }
             else {
-                alert("Ошибка при отправке");
+                const errorMessage = await response.text();
+                displayError(errorMessage);
             }
         }
     });

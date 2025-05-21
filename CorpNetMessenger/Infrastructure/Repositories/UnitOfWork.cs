@@ -8,13 +8,14 @@ namespace CorpNetMessenger.Infrastructure.Repositories
     {
         private readonly MessengerContext _context;
         private bool _disposed;
-        public IRepository<Chat> _chats;
-        public IRepository<Department> _departments;
-        public IRepository<Attachment> _files;
-        public IMessageRepository _messages;
-        public IRepository<Post> _posts;
-        public IRepository<Status> _statuses;
-        public IRepository<User> _users;
+        private IRepository<Chat> _chats;
+        private IRepository<Department> _departments;
+        private IRepository<Attachment> _files;
+        private IMessageRepository _messages;
+        private IRepository<Post> _posts;
+        private IRepository<Status> _statuses;
+        private IRepository<User> _users;
+        private IChatUserRepository _chatUsers;
 
         public UnitOfWork(MessengerContext context)
         {
@@ -23,11 +24,12 @@ namespace CorpNetMessenger.Infrastructure.Repositories
 
         public IRepository<Chat> Chats => _chats ??= new ChatRepository(_context);
         public IRepository<Department> Departments => _departments ??= new DepartmentRepository(_context);
-        public IRepository<Domain.Entities.Attachment> Files => _files ??= new AttachmentRepository(_context);
+        public IRepository<Attachment> Files => _files ??= new AttachmentRepository(_context);
         public IMessageRepository Messages => _messages ??= new MessageRepository(_context);
         public IRepository<Post> Posts => _posts ??= new PostRepository(_context);
         public IRepository<Status> Statuses => _statuses ??= new StatusRepository(_context);
         public IRepository<User> Users => _users ??= new UserRepository(_context);
+        public IChatUserRepository ChatUsers => _chatUsers ??= new ChatUserRepository(_context);
 
         public async Task<int> SaveAsync()
         {
