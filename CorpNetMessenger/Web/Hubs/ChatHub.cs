@@ -1,4 +1,5 @@
-﻿using CorpNetMessenger.Domain.Interfaces.Services;
+﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
+using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
@@ -10,10 +11,13 @@ namespace CorpNetMessenger.Web.Hubs
     {
         private readonly ILogger<ChatHub> _logger;
         private readonly IChatService _chatService;
-        public ChatHub(ILogger<ChatHub> logger, IChatService chatService)
+        private readonly IUnitOfWork _unitOfWork;
+        public ChatHub(ILogger<ChatHub> logger, IChatService chatService,
+            IUnitOfWork unitOfWork)
         {
             _logger = logger;
             _chatService = chatService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task Enter(string chatId)
@@ -48,6 +52,12 @@ namespace CorpNetMessenger.Web.Hubs
                 _logger.LogError(ex, "Ошибка редактирования сообщения");
                 await Clients.Caller.SendAsync("Error", "Внутренняя ошибка сервера");
             }
+        }
+
+        public async Task LoadHistory(string chatId, int skip = 0, int take = 5)
+        {
+            var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
+            await Clients.Caller.SendAsync("ReceiveHistory", messages);
         }
 
         private string GetUserId()

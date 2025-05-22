@@ -35,8 +35,8 @@ namespace CorpNetMessenger.Web.Controllers
 
             try
             {
-                var messages = await _unitOfWork.Messages.GetChatMessagesAsync(id);
-                return View(messages);
+                var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id);
+                return View(messages.Reverse());
             }
             catch (Exception ex)
             {

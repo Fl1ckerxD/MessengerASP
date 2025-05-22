@@ -16,7 +16,7 @@ namespace CorpNetMessenger.Tests.Services
         {
             var userStore = new Mock<IUserStore<User>>();
             _userManagerMock = new Mock<UserManager<User>>(userStore.Object, null, null, null, null, null, null, null, null);
-            _signInManagerMock = new Mock<SignInManager<User>>(_userManagerMock.Object, Mock.Of<Microsoft.AspNetCore.Http.IHttpContextAccessor>(), Mock.Of<Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<User>>(), null, null, null, null);
+            _signInManagerMock = new Mock<SignInManager<User>>(_userManagerMock.Object, Mock.Of<Microsoft.AspNetCore.Http.IHttpContextAccessor>(), Mock.Of<IUserClaimsPrincipalFactory<User>>(), null, null, null, null);
         }
 
         [Fact]

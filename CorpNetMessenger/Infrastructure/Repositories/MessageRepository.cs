@@ -12,7 +12,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<MessageViewModel>> GetChatMessagesAsync(string chatId)
+        public async Task<IEnumerable<MessageViewModel>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
         {
             if (!_context.Chats.Any(c => c.Id == chatId)) // Проверка на наличие чата с таким id
                 throw new Exception("Такого чата нет");
@@ -21,6 +21,9 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .Where(m => m.ChatId == chatId)
                 .Include(m => m.User)
                 .Include(m => m.Attachments)
+                .OrderByDescending(m => m.SentAt)
+                .Skip(skip)
+                .Take(take)
                 .Select(m => new MessageViewModel
                 {
                     Id = m.Id,
@@ -32,7 +35,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                         Id = c.Id.ToString(),
                         Name = c.FileName
                     })
-                }).OrderBy(m => m.SentAt).ToListAsync();
+                }).ToListAsync();
         }
     }
 }

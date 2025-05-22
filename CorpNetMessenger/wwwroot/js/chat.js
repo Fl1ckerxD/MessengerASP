@@ -6,6 +6,10 @@ const hubConnection = new signalR.HubConnectionBuilder()
 // кнопка должна быть не активной пока не будет подключения к хабу
 document.getElementById("sendBtn").disabled = true;
 
+let skip = 5;
+const take = 5;
+let hasMoreMessages = true;
+
 // получение нового сообщения
 hubConnection.on("Receive", function (message, attachments, userName, dateUtc) {
     // создаем элемент <b> для первой части сообщения
@@ -42,6 +46,54 @@ hubConnection.on("UpdateMessage", function (messageId, newText) {
 // получение ошибок
 hubConnection.on("Error", displayError);
 
+// получение истории сообщений
+hubConnection.on("ReceiveHistory", (messages) => {
+    const chatBox = document.getElementById("chatroom");
+
+    // Сохраняем текущее состояние прокрутки
+    const previousScrollHeight = chatBox.scrollHeight;
+    const previousScrollTop = chatBox.scrollTop;
+
+    if (messages.length === 0) {
+        hasMoreMessages = false;
+        console.log("Бошльше сообщений нет");
+        return;
+    }
+
+    messages.forEach(message => {
+        const messageEl = document.createElement("div");
+        messageEl.setAttribute("data-message-id", message.id);
+        let filesHtml = "";
+        if (message.attachments && message.attachments.length > 0) {
+            filesHtml = message.attachments.map(f =>
+                `<a href="/api/messages/download/${f.id}">${f.name}</a>`
+            ).join(", ");
+        }
+
+        messageEl.innerHTML = `
+        <b>${new Date(message.sentAt).toLocaleString()}:</b> ${message.content}
+        ${filesHtml ? `<div class="attachments">${filesHtml}</div>` : ""}
+        `;
+
+        chatBox.prepend(messageEl); // вставляем в начало - самые старые сверху
+    });
+
+    // Восстанавливаем позицию прокрутки
+    const newScrollHeight = chatBox.scrollHeight;
+    chatBox.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+});
+
+// подключение к хабу на сервере 
+hubConnection.start()
+    .then(function () {
+        document.getElementById("sendBtn").disabled = false; // активируем кнопку отправления сообщения
+        const chatId = getChatIdFromUrl(); // получаем id группы
+        hubConnection.invoke("Enter", chatId); // подключаемся к группе
+    })
+    .catch(function (err) {
+        return console.error(err.toString());
+    });
+
 function displayError(error) {
     const errorElem = document.createElement("span");
     errorElem.textContent = error;
@@ -55,16 +107,21 @@ function displayError(error) {
     }, 5000);
 };
 
-// подключение к хабу на сервере 
-hubConnection.start()
-    .then(function () {
-        document.getElementById("sendBtn").disabled = false; // активируем кнопку отправления сообщения
-        const chatId = getChatIdFromUrl(); // получаем id группы
-        hubConnection.invoke("Enter", chatId); // подключаемся к группе
-    })
-    .catch(function (err) {
-        return console.error(err.toString());
-    });
+function loadHistory() {
+    if (!hasMoreMessages) return;
+
+    const chatId = getChatIdFromUrl(); // получаем id группы
+
+    hubConnection.invoke("LoadHistory", chatId, skip, take);
+    skip += take;
+};
+
+function scrollToBottom() {
+    const chatroom = document.getElementById("chatroom");
+    if (chatroom) {
+        chatroom.scrollTop = chatroom.scrollHeight;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
@@ -205,6 +262,16 @@ document.addEventListener('DOMContentLoaded', () => {
             textarea.dataset.editingMessageId = messageId;
         });
     });
+
+    // добавление сообщений при прокрутки вверх
+    document.getElementById("chatroom").addEventListener("scroll", function () {
+        if (this.scrollTop === 0) {
+            loadHistory();
+        }
+    });
+
+    // после загрузки страницы ставим скролл на дефолтную позицию в самом низу
+    window.addEventListener("load", scrollToBottom);
 });
 
 function getChatIdFromUrl() {

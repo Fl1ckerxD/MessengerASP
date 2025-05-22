@@ -1,8 +1,10 @@
-﻿using CorpNetMessenger.Domain.Interfaces.Services;
+﻿using Castle.Core.Logging;
+using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Controllers;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace CorpNetMessenger.Tests.Controllers
@@ -16,7 +18,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Login(It.IsAny<LoginViewModel>()))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Success);
 
-            var controller = new AuthController(accountServiceMock.Object);
+            var controller = new AuthController(accountServiceMock.Object, Mock.Of<ILogger<AuthController>>());
             var model = new LoginViewModel();
 
             var result = await controller.Login(model);
@@ -33,7 +35,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Login(It.IsAny<LoginViewModel>()))
                 .ReturnsAsync(Microsoft.AspNetCore.Identity.SignInResult.Failed);
 
-            var controller = new AuthController(accountServiceMock.Object);
+            var controller = new AuthController(accountServiceMock.Object, Mock.Of<ILogger<AuthController>>());
             var model = new LoginViewModel();
             
             var result = await controller.Login(model);
@@ -50,7 +52,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Register(It.IsAny<RegisterViewModel>()))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var controller = new AuthController(accountServiceMock.Object);
+            var controller = new AuthController(accountServiceMock.Object, Mock.Of<ILogger<AuthController>>());
             var model = new RegisterViewModel();
 
             var result = await controller.Register(model);
@@ -67,7 +69,7 @@ namespace CorpNetMessenger.Tests.Controllers
             accountServiceMock.Setup(x => x.Register(It.IsAny<RegisterViewModel>()))
                 .ReturnsAsync(IdentityResult.Failed(errors));
 
-            var controller = new AuthController(accountServiceMock.Object);
+            var controller = new AuthController(accountServiceMock.Object, Mock.Of<ILogger<AuthController>>());
             var model = new RegisterViewModel();
 
             var result = await controller.Register(model);
