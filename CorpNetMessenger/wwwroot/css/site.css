@@ -1,31 +1,111 @@
+:root {
+    --primary: #008CFF;
+    --secondary: #202225;
+    --text-button: #5E6787;
+    --darker-text-button: #4C536B;
+    --muted: #D1D5D9;
+}
+
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('/images/Backgrounds/emoji-background.png'), linear-gradient(to bottom right, #007BFF, #6A1B9A);
+    background-repeat: repeat;
+    font-family: Arial, sans-serif;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+    color: var(--bs-secondary-color);
+    text-align: end;
 }
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+    text-align: start;
+}
+
+.login-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px black;
+    width: 600px;
+    height: 500px;
+}
+
+    .login-form h1, h2 {
+        font-size: 50px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .login-form label {
+        font-size: 20px;
+        display: block;
+        margin-left: 15px;
+    }
+
+    .login-form input[type="text"] {
+        width: 100%;
+    }
+
+    .login-form input[type="password"] {
+        width: 100%;
+    }
+
+    .login-form button[type="submit"] {
+        width: 100%;
+    }
+
+    .login-form input[type="submit"]:hover {
+        background-color: #218838;
+    }
+
+.input-form {
+    margin-bottom: 15px;
+}
+
+    .input-form span {
+        margin-left: 15px;
+    }
+
+.main-input-text {
+    padding: 10px;
+    background-color: var(--muted);
+    border: none;
+    border-radius: 20px;
+    font-size: 20px;
+}
+
+.main-button {
+    padding: 8px 0;
+    margin-top: 10px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 20px;
 }
