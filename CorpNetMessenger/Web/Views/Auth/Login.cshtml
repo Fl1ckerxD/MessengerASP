@@ -1,30 +1,28 @@
 ﻿@model LoginViewModel
 
-<div class="login-form">
-    <h1>Авторизация</h1>
-    <form asp-action="Login" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size: 20px;"></div>
+<h2>Войдите в свою учетную запись</h2>
+<form asp-action="Login" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <div class="input-form">
-            <label asp-for="UserName"></label>
-            <input asp-for="UserName" class="main-input-text" />
-            <span asp-validation-for="UserName" class="text-danger"></span>
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="form-group form-check d-flex justify-content-between align-items-center">
+        <div>
+            <input asp-for="RememberMe" class="form-check-input" />
+            <label asp-for="RememberMe" class="form-check-label">Запомнить меня</label>
         </div>
+        <a asp-action="Register">Регистрация</a>
+    </div>
 
-        <div class="input-form">
-            <label asp-for="Password"></label>
-            <input asp-for="Password" class="main-input-text" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-
-        <div class="form-group form-check d-flex justify-content-between align-items-center">
-            <div>
-                <input asp-for="RememberMe" class="form-check-input" />
-                <label asp-for="RememberMe" class="form-check-label" style="margin: 0;">Запомнить меня</label>
-            </div>
-            <a asp-action="Register" style="font-size: 20px;">Регистрация</a>
-        </div>
-
-        <button type="submit" class="main-button">Авторизоваться</button>
-    </form>
-</div>
+    <button type="submit" class="btn btn-primary">Войти</button>
+</form>

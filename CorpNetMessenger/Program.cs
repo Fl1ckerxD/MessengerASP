@@ -1,4 +1,3 @@
-using CorpNetMessenger.Application;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
@@ -8,6 +7,7 @@ using CorpNetMessenger.Infrastructure.Repositories;
 using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 
 namespace MessengerASP
@@ -21,7 +21,8 @@ namespace MessengerASP
             // Add services to the container.
             builder.Services.AddControllersWithViews().AddRazorOptions(options =>
             {
-                options.ViewLocationExpanders.Add(new CustomViewLocationExpander());
+                options.ViewLocationFormats.Add("/Web/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
+                options.ViewLocationFormats.Add("/Web/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
             });
 
             var conString = builder.Configuration.GetConnectionString("CorpNetMessenger") ??
@@ -30,10 +31,10 @@ namespace MessengerASP
 
             builder.Services.AddIdentity<User, IdentityRole<string>>(options =>
             {
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false; 
+                options.Password.RequireLowercase = false; 
+                options.Password.RequireUppercase = false; 
+                options.Password.RequireDigit = false; 
             })
                 .AddEntityFrameworkStores<MessengerContext>()
                 .AddDefaultTokenProviders();
@@ -83,11 +84,8 @@ namespace MessengerASP
             app.MapControllerRoute(
                 name: "chat",
                 pattern: "chat/{id}",
-                defaults: new { controller = "Chat", action = "Index" });
-
-            app.MapControllerRoute(
-                    name: "areas",
-                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                defaults: new { controller = "Chat", action = "Index" }
+                );
 
             app.MapControllerRoute(
                 name: "default",
