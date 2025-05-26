@@ -4,11 +4,13 @@ namespace CorpNetMessenger.Web.ViewModels
 {
     public class LoginViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Введите Логин")]
+        [Display(Name = "Логин")]
         public string UserName { get; set; } = null!;
 
-        [Required]
+        [Required(ErrorMessage = "Введите Пароль")]
         [DataType(DataType.Password)]
+        [Display(Name = "Пароль")]
         public string Password { get; set; } = null!;
 
         [Display(Name = "Запомнить меня")]
