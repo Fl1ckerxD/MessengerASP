@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CorpNetMessenger.Infrastructure.Data
 {
-    public class MessengerContext : IdentityDbContext<User, IdentityRole<string>, string>
+    public class MessengerContext : IdentityDbContext<User, IdentityRole, string>
     {
         public virtual DbSet<Chat> Chats { get; set; } = null!;
         public virtual DbSet<Department> Departments { get; set; } = null!;

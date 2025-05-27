@@ -4,31 +4,31 @@ namespace CorpNetMessenger.Web.ViewModels
 {
     public class RegisterViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Фамилия обязательна для заполнения")]
         [Display(Name = "Фамилия")]
         public string LastName { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Имя обязательно для заполнения")]
         [Display(Name = "Имя")]
         public string Name { get; set; }
 
         [Display(Name = "Отчество")]
         public string? Patronymic { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Логин обязателен для заполнения")]
         [Display(Name = "Логин")]
         public string Login { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email обязателен для заполнения")]
+        [EmailAddress(ErrorMessage = "Некорректный формат Email")]
         [Display(Name = "Email")]
         public string Email { get; set; }
 
         [Display(Name = "Телефон")]
-        [Phone]
+        [Phone(ErrorMessage = "Некорректный формат телефона")]
         public string? PhoneNumber { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Пароль обязателен для заполнения")]
         [StringLength(100, ErrorMessage = "Пароль должен быть не короче 6 символов.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Пароль")]
@@ -38,5 +38,13 @@ namespace CorpNetMessenger.Web.ViewModels
         [DataType(DataType.Password)]
         [Display(Name = "Подтвердить пароль")]
         public string PasswordConfirm { get; set; }
+
+        [Required(ErrorMessage = "Выберите отдел")]
+        [Display(Name = "Отдел")]
+        public int DepartmentId { get; set; }
+
+        [Required(ErrorMessage = "Выберите должность")]
+        [Display(Name = "Должность")]
+        public int PostId { get; set; }
     }
 }

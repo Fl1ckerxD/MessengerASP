@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CorpNetMessenger.Domain.Entities
 {
-    public class User : IdentityUser<string>
+    public class User : IdentityUser
     {
         public User()
         {

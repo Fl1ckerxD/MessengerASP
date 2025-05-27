@@ -28,7 +28,7 @@ namespace MessengerASP
                 throw new InvalidOperationException("Connection string 'CorpNetMessenger' not found.");
             builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
 
-            builder.Services.AddIdentity<User, IdentityRole<string>>(options =>
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
@@ -36,7 +36,8 @@ namespace MessengerASP
                 options.Password.RequireDigit = false;
             })
                 .AddEntityFrameworkStores<MessengerContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddRoles<IdentityRole>();
 
             builder.Services.Configure<IdentityOptions>(options =>
             {

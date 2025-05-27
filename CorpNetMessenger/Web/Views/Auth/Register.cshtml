@@ -1,49 +1,101 @@
 ﻿@model RegisterViewModel
+@{
+    ViewData["Title"] = "Регистрация";
+}
 
-<h2>Регистрация нового пользователя</h2>
-<form method="post" asp-action="Register">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="form-group">
-        <label asp-for="LastName"></label><br />
-        <input asp-for="LastName" class="form-control" />
-        <span asp-validation-for="LastName" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Name"></label><br />
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Patronymic"></label><br />
-        <input asp-for="Patronymic" class="form-control" />
-        <span asp-validation-for="Patronymic" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Login"></label><br />
-        <input asp-for="Login" class="form-control" />
-        <span asp-validation-for="Login" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Email"></label><br />
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="PhoneNumber"></label><br />
-        <input asp-for="PhoneNumber" class="form-control" />
-        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="Password"></label><br />
-        <input asp-for="Password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="PasswordConfirm"></label><br />
-        <input asp-for="PasswordConfirm" class="form-control" />
-        <span asp-validation-for="PasswordConfirm" class="text-danger"></span>
-    </div>
-    <div>
-        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
-    </div>
-</form>
+<div class="registration-form">
+    <a href="/" class="back-button">❮ Назад</a>
+    <h1>Регистрация</h1>
+    <form asp-action="Register" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size: 20px;"></div>
+        <div class="input-inline">
+            <div class="input-form">
+                <div class="label-with-star">
+                    <label asp-for="LastName"></label>
+                    @* <span class="text-danger">*</span> *@
+                </div>
+                <input asp-for="LastName" class="main-input-text" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+            <div class="input-form">
+                <div class="label-with-star">
+                    <label asp-for="Name"></label>
+                    <span class="text-danger">*</span>
+                </div>
+                <input asp-for="Name" class="main-input-text" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="input-form">
+                <label asp-for="Patronymic"></label>
+                <input asp-for="Patronymic" class="main-input-text" />
+                <span asp-validation-for="Patronymic" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="input-inline">
+            <div class="input-form">
+                <div class="label-with-star">
+                    <label asp-for="Email"></label>
+                    <span class="text-danger">*</span>
+                </div>
+                <input asp-for="Email" class="main-input-text" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="input-form">
+                <label asp-for="PhoneNumber"></label>
+                <input asp-for="PhoneNumber" class="main-input-text" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="input-form">
+            <div class="label-with-star">
+                <label asp-for="Login"></label>
+                <span class="text-danger">*</span>
+            </div>
+            <input asp-for="Login" class="main-input-text" />
+            <span asp-validation-for="Login" class="text-danger"></span>
+        </div>
+        <div class="input-form">
+            <div class="label-with-star">
+                <label asp-for="Password"></label>
+                <span class="text-danger">*</span>
+            </div>
+            <input asp-for="Password" class="main-input-text" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="input-form">
+            <div class="label-with-star">
+                <label asp-for="PasswordConfirm"></label>
+                <span class="text-danger">*</span>
+            </div>
+            <input asp-for="PasswordConfirm" class="main-input-text" />
+            <span asp-validation-for="PasswordConfirm" class="text-danger"></span>
+        </div>
+        <div class="input-form">
+            <div class="label-with-star">
+                <label asp-for="DepartmentId"></label>
+                <span class="text-danger">*</span>
+            </div>
+            <select asp-for="DepartmentId" class="main-input-text" asp-items="ViewBag.Departments">
+                <option value="">-- Выберите отдел --</option>
+            </select>
+            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+        </div>
+        <div class="input-form">
+            <div class="label-with-star">
+                <label asp-for="PostId"></label>
+                <span class="text-danger">*</span>
+            </div>
+            <select asp-for="PostId" class="main-input-text" asp-items="ViewBag.Posts">
+                <option value="">-- Выберите должность --</option>
+            </select>
+            <span asp-validation-for="PostId" class="text-danger"></span>
+        </div>
+        <button type="submit" class="main-button">Зарегистрироваться</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

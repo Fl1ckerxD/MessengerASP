@@ -1,6 +1,9 @@
-﻿using CorpNetMessenger.Domain.Interfaces.Services;
+﻿using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
+using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace CorpNetMessenger.Web.Controllers
 {
@@ -8,15 +11,26 @@ namespace CorpNetMessenger.Web.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AuthController(IAccountService accountService, ILogger<AuthController> logger)
+        public AuthController(IAccountService accountService, ILogger<AuthController> logger,
+            IUnitOfWork unitOfWork)
         {
             _accountService = accountService;
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Register() => View();
         public IActionResult Login() => View();
+
+        public async Task<IActionResult> Register()
+        {
+            var model = new RegisterViewModel();
+            await LoadSelectListItem();
+
+            return View(model);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -43,7 +57,10 @@ namespace CorpNetMessenger.Web.Controllers
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                await LoadSelectListItem();
                 return View(model);
+            }
 
             try
             {
@@ -75,6 +92,24 @@ namespace CorpNetMessenger.Web.Controllers
         {
             await _accountService.Logout();
             return RedirectToAction("Index", "Home");
+        }
+
+        private async Task LoadSelectListItem()
+        {
+            var departments = await _unitOfWork.Departments.GetAllAsync();
+            var posts = await _unitOfWork.Posts.GetAllAsync();
+
+            ViewBag.Departments = departments.Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Title
+            });
+
+            ViewBag.Posts = posts.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Title
+            });
         }
     }
 }

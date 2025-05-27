@@ -57,6 +57,9 @@
 ### Авторизация
 <img src="assets/screenshots/Login.png" width="500">
 
+### Регистрация
+<img src="assets/screenshots/Registration.png" width="500">
+
 ## 📅 План доработки
 
 - [x] Реализовать авторизацию через Identity  

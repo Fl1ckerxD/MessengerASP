@@ -4,19 +4,16 @@
     <h1>Авторизация</h1>
     <form asp-action="Login" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size: 20px;"></div>
-
         <div class="input-form">
             <label asp-for="UserName"></label>
             <input asp-for="UserName" class="main-input-text" />
             <span asp-validation-for="UserName" class="text-danger"></span>
         </div>
-
         <div class="input-form">
             <label asp-for="Password"></label>
             <input asp-for="Password" class="main-input-text" />
             <span asp-validation-for="Password" class="text-danger"></span>
         </div>
-
         <div class="form-group form-check d-flex justify-content-between align-items-center">
             <div>
                 <input asp-for="RememberMe" class="form-check-input" />
@@ -24,7 +21,6 @@
             </div>
             <a asp-action="Register" style="font-size: 20px;">Регистрация</a>
         </div>
-
         <button type="submit" class="main-button">Авторизоваться</button>
     </form>
 </div>
