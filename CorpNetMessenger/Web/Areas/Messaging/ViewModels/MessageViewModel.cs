@@ -1,4 +1,4 @@
-﻿namespace CorpNetMessenger.Web.ViewModels
+﻿namespace CorpNetMessenger.Web.Areas.Messaging.ViewModels
 {
     public class MessageViewModel
     {

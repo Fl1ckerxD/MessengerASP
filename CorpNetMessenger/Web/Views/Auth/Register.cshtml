@@ -12,7 +12,7 @@
             <div class="input-form">
                 <div class="label-with-star">
                     <label asp-for="LastName"></label>
-                    @* <span class="text-danger">*</span> *@
+                    <span class="text-danger">*</span>
                 </div>
                 <input asp-for="LastName" class="main-input-text" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
@@ -92,7 +92,7 @@
             </select>
             <span asp-validation-for="PostId" class="text-danger"></span>
         </div>
-        <button type="submit" class="main-button">Зарегистрироваться</button>
+        <button type="submit" class="main-button" style="margin-bottom: 15px;">Зарегистрироваться</button>
     </form>
 </div>
 

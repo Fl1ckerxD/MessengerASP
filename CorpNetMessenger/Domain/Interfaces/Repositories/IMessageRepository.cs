@@ -1,5 +1,5 @@
 ﻿using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Web.ViewModels;
+using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 
 namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {

@@ -1,7 +1,7 @@
 ﻿using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
-using CorpNetMessenger.Web.ViewModels;
+using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace CorpNetMessenger.Infrastructure.Repositories

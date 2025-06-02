@@ -1,6 +1,9 @@
-﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq.Expressions;
 
 namespace CorpNetMessenger.Infrastructure.Repositories
 {
@@ -16,6 +19,11 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         public virtual async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
         }
 
         public virtual async Task DeleteAsync(string id)

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
-namespace CorpNetMessenger.Web.Controllers
+namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 {
     [Authorize]
     [ApiController]

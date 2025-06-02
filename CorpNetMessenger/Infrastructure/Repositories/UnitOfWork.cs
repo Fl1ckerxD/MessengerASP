@@ -14,7 +14,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         private IMessageRepository _messages;
         private IRepository<Post> _posts;
         private IRepository<Status> _statuses;
-        private IRepository<User> _users;
+        private IUserRepository _users;
         private IChatUserRepository _chatUsers;
 
         public UnitOfWork(MessengerContext context)
@@ -28,7 +28,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         public IMessageRepository Messages => _messages ??= new MessageRepository(_context);
         public IRepository<Post> Posts => _posts ??= new PostRepository(_context);
         public IRepository<Status> Statuses => _statuses ??= new StatusRepository(_context);
-        public IRepository<User> Users => _users ??= new UserRepository(_context);
+        public IUserRepository Users => _users ??= new UserRepository(_context);
         public IChatUserRepository ChatUsers => _chatUsers ??= new ChatUserRepository(_context);
 
         public async Task<int> SaveAsync()

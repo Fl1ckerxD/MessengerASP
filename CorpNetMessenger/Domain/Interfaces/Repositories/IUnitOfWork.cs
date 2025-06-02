@@ -10,7 +10,7 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
         IMessageRepository Messages { get; }
         IRepository<Post> Posts { get; }
         IRepository<Status> Statuses { get; }
-        IRepository<User> Users { get; }
+        IUserRepository Users { get; }
         IChatUserRepository ChatUsers { get; }
         Task<int> SaveAsync();
     }

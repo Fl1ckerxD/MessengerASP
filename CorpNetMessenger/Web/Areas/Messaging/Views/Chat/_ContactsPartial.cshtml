@@ -1,0 +1,15 @@
+﻿@model ContactPanelViewModel
+
+<div>
+    <label class="list-group-item">@Model.CurrentUser.UserName</label>
+    <span class="badge bg-primary">@Model.CurrentUser.PostName</span>
+</div>
+<ul class="list-group">
+    @foreach (var contact in Model.Contacts)
+    {
+        <li class="list-group-item contact-item">
+            @contact.UserName
+            <span class="badge bg-primary">@contact.PostName</span>
+        </li>
+    }
+</ul>
