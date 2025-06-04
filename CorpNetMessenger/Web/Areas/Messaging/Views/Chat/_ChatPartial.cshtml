@@ -1,48 +1,52 @@
 ﻿@model IEnumerable<MessageViewModel>
-@{
-    ViewData["Title"] = "Chat";
-}
-<div id="chatroom" style="
-    height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-">
+
+<div class="chat-header">
+    <div class="chat-title">
+        <span>Отдел муниципального контроля</span>
+    </div>
+</div>
+<div id="chatroom" class="chat-messages">
     @foreach (var message in Model)
     {
-        <div class="message-container" data-message-id="@message.Id">
-            <div class="message-avatar"></div>
-            <div class="message-meta">
-                <label>@message.SentAt</label>
-                <strong>@message.UserName</strong>
-            </div>
-            <p class="message-text">@message.Content</p>
-            @if (message.Attachments.Count() > 0)
-            {
-                <div class="files">
-                    @foreach (var attachment in message.Attachments)
-                    {
-                        <a href="/api/messages/download/@attachment.Id">
-                            @attachment.Name
-                        </a>
-                    }
+        <div class="message" data-message-id="@message.Id">
+            <div class="message-avatar">👤</div>
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="message-author">@message.UserName</span>
+                    <span class="message-time">@message.SentAt</span>
                 </div>
-            }
-            <button class="editBtn">Редактировать</button>
+                <p class="message-text">@message.Content</p>
+                @if (message.Attachments.Count() > 0)
+                {
+                    <div class="files">
+                        @foreach (var attachment in message.Attachments)
+                        {
+                            <div class="file-download">
+                                <div class="file-icon">📄</div>
+                                <div class="file-info">
+                                    <div class="file-name">@attachment.Name</div>
+                                    <div class="file-size">35.9КВ</div>
+                                </div>
+                                <a class="download-btn" href="/api/messages/download/@attachment.Id">Скачать</a>
+                            </div>
+                        }
+                    </div>
+                }
+                @* <button class="editBtn">Редактировать</button> *@
+            </div>
         </div>
     }
 </div>
-<footer>
-    <div>
-        <ul id="fileList" class="file-list"></ul>
 
-        <textarea id="message" placeholder="Введите сообщение..."></textarea>
-
+<div class="chat-input-container">
+    <ul id="fileList" class="file-list"></ul>
+    <div class="chat-input-wrapper">
         <input type="file" id="fileInput" style="display: none;" multiple />
-        <button id="addFileBtn">📎 Добавить файл</button>
-
-        <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
+        <button id="addFileBtn" class="attach-btn">📎</button>
+        <input type="text" id="message" placeholder="Введите сообщение..." class="chat-input" />
     </div>
-</footer>
+    <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
+</div>
+
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/chat.js"></script>

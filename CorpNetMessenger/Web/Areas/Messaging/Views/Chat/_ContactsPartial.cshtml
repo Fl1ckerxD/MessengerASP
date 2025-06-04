@@ -1,15 +1,27 @@
 ﻿@model ContactPanelViewModel
 
-<div>
-    <label class="list-group-item">@Model.CurrentUser.UserName</label>
-    <span class="badge bg-primary">@Model.CurrentUser.PostName</span>
+<div class="current-user-container">
+    <div class="current-user">
+        <div class="user-avatar-large">👤</div>
+        <div class="user-info">
+            <div class="user-name">@Model.CurrentUser.UserName</div>
+            <div class="user-role">@Model.CurrentUser.PostName</div>
+        </div>
+        <div class="settings-icon">⚙️</div>
+    </div>
+
+    <input class="search-input" type="text" placeholder="🔍 Сотрудники" />
 </div>
-<ul class="list-group">
+
+<div class="employee-list">
     @foreach (var contact in Model.Contacts)
     {
-        <li class="list-group-item contact-item">
-            @contact.UserName
-            <span class="badge bg-primary">@contact.PostName</span>
-        </li>
+        <div class="employee-item">
+            <div class="employee-avatar">👤</div>
+            <div class="employee-info">
+                <div class="employee-name">@contact.UserName</div>
+                <span class="employee-post">@contact.PostName</span>
+            </div>
+        </div>
     }
-</ul>
+</div>

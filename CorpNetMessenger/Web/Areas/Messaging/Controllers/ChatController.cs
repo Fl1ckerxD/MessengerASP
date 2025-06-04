@@ -52,7 +52,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id);
+                var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id, take: 10);
                 var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId);
 
                 var currentUser = contacts.FirstOrDefault(u => u.Id == userId);

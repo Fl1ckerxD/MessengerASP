@@ -1,15 +1,13 @@
 ﻿ @model ChatViewModel
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Левая панель: Список коллег -->
-        <div class="col-md-4 border-right" id="contacts-panel">
-            @await Html.PartialAsync("_ContactsPartial", Model.Contacts)
-        </div>
+<div class="chat-container">
+    <!-- Левая панель: Список коллег -->
+    <div class="contacts-panel">
+        @await Html.PartialAsync("_ContactsPartial", Model.Contacts)
+    </div>
 
-        <!-- Правая панель: Чат -->
-        <div class="col-md-8" id="chat-panel">
-            @await Html.PartialAsync("_ChatPartial", Model.Chat)
-        </div>
+    <!-- Правая панель: Чат -->
+    <div class="chat-panel">
+        @await Html.PartialAsync("_ChatPartial", Model.Chat)
     </div>
 </div>
