@@ -9,26 +9,46 @@
     @foreach (var message in Model)
     {
         <div class="message" data-message-id="@message.Id">
-            <div class="message-avatar">👤</div>
+            <div class="message-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
             <div class="message-content">
                 <div class="message-header">
                     <span class="message-author">@message.UserName</span>
                     <span class="message-time">@message.SentAt</span>
                 </div>
                 <p class="message-text">@message.Content</p>
-                @if (message.Attachments.Count() > 0)
+                @if (message.Attachments.Any())
                 {
-                    <div class="files">
+                    <div class="attachments">
                         @foreach (var attachment in message.Attachments)
                         {
-                            <div class="file-download">
-                                <div class="file-icon">📄</div>
-                                <div class="file-info">
-                                    <div class="file-name">@attachment.Name</div>
-                                    <div class="file-size">35.9КВ</div>
+                            if (attachment.IsImage())
+                            {
+                                <div class="image-preview">
+                                    <img src="/api/messages/download/@attachment.Id"
+                                         alt="@attachment.Name" class="message-image"
+                                         data-bs-toggle="modal" data-bs-target="#imageModal"
+                                         data-src="/api/messages/download/@attachment.Id"
+                                         style="max-width: 300px; max-height: 300px;" />
                                 </div>
-                                <a class="download-btn" href="/api/messages/download/@attachment.Id">Скачать</a>
-                            </div>
+                            }
+                            else
+                            {
+                                <div class="file-download">
+                                    <div class="file-icon">
+                                        <i class="bi bi-file-earmark"></i>
+                                    </div>
+                                    <div class="file-info">
+                                        <div class="file-name">@attachment.Name</div>
+                                        <div class="file-size">@attachment.FileSize</div>
+                                    </div>
+                                    <a class="download-btn" href="/api/messages/download/@attachment.Id" download>
+                                        Скачать
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
+                            }
                         }
                     </div>
                 }
@@ -42,11 +62,32 @@
     <ul id="fileList" class="file-list"></ul>
     <div class="chat-input-wrapper">
         <input type="file" id="fileInput" style="display: none;" multiple />
-        <button id="addFileBtn" class="attach-btn">📎</button>
+        <button id="addFileBtn" class="attach-btn">
+            <i class="bi bi-paperclip"></i>
+        </button>
         <input type="text" id="message" placeholder="Введите сообщение..." class="chat-input" />
+        <button id="sendBtn" class="send-button" disabled="disabled">
+            <i class="bi bi-send-fill"></i>
+        </button>
     </div>
-    <input type="button" id="sendBtn" value="Отправить" disabled="disabled" />
 </div>
 
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/chat.js"></script>
+
+<!-- Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body d-flex justify-content-center">
+                <img id="modalImage" class="img-fluid" src="" alt="Увеличенное изображение" />
+            </div>
+            <div class="modal-footer d-flex">
+                <a id="downloadLink" class="main-button" href="#" download>
+                    <i class="bi bi-download"></i>
+                </a>
+                <button type="button" class="main-button" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>

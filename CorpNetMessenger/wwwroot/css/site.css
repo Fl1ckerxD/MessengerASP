@@ -1,6 +1,7 @@
 :root {
     --primary: #008CFF;
     --secondary: #202225;
+    --hover-button: #40A8FF;
     --text-button: #5E6787;
     --darker-text-button: #4C536B;
     --muted: #D1D5D9;
@@ -94,7 +95,7 @@ body {
 }
 
 .main-button {
-    padding: 8px 0;
+    padding: 8px;
     margin-top: 10px;
     background-color: var(--primary);
     color: white;
@@ -102,7 +103,12 @@ body {
     border-radius: 15px;
     cursor: pointer;
     font-size: 20px;
+    text-decoration: none;
 }
+
+    .main-button:hover {
+        background-color: var(--hover-button);
+    }
 
 .registration-form1 {
     width: 100vw;
@@ -209,6 +215,8 @@ body {
     justify-content: center;
     font-size: 25px;
     color: white;
+    background-color: #333;
+    border-radius: 50%;
 }
 
 .user-info {
@@ -226,17 +234,32 @@ body {
 }
 
 .settings-icon {
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
-    opacity: 0.7;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
 }
 
 .search-input {
+    padding-left: 30px;
     width: 100%;
     border: 1px solid var(--darker-text-button);
     background-color: white;
     font-size: 14px;
     outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    pointer-events: none;
+    color: #888;
+    font-size: 16px;
 }
 
     .search-input:focus {
@@ -330,7 +353,7 @@ body {
 .message-avatar {
     width: 40px;
     height: 40px;
-    background-color: white;
+    background-color: #333;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -397,8 +420,21 @@ body {
     font-size: 12px;
 }
 
+.message-image {
+    display: block;
+    margin: 10px 0;
+    max-width: 100%;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+#modalImage {
+    border-radius: 5px;
+}
+
 .download-btn {
-    background-color: #4F46E5;
+    background-color: var(--primary);
     color: white;
     border: none;
     padding: 6px 12px;
@@ -410,7 +446,7 @@ body {
 }
 
     .download-btn:hover {
-        background-color: #4338CA;
+        background-color: var(--hover-button);
     }
 
 .chat-input-container {
@@ -450,6 +486,13 @@ body {
     .chat-input::placeholder {
         color: #999;
     }
+
+.send-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #666;
+}
 
 @media (max-width: 768px) {
     .chat-container {

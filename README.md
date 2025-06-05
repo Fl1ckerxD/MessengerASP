@@ -60,6 +60,12 @@
 ### Регистрация
 <img src="assets/screenshots/Registration.png" width="500">
 
+### Чат
+<img src="assets/screenshots/Chat.png" width="500">
+
+### Увеличенное изображение 
+<img src="assets/screenshots/Enlarged_image.png" width="500">
+
 ## 📅 План доработки
 
 - [x] Реализовать авторизацию через Identity  

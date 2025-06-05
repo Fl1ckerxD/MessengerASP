@@ -127,7 +127,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
     const addFileBtn = document.getElementById('addFileBtn');
     const fileList = document.getElementById('fileList');
+    const imagePreviews = document.querySelectorAll('.message-image');
     let addedFiles = [];
+
+    // передача изображения в модальное окно
+    imagePreviews.forEach(img => {
+        img.addEventListener('click', function () {
+            const imageUrl = this.dataset.src;
+            const fileName = imageUrl.split('/').pop(); // Получаем ID или имя файла из URL
+            const downloadLink = document.getElementById('downloadLink');
+            const modalImage = document.getElementById('modalImage');
+
+            modalImage.src = imageUrl;
+
+            // Установите ссылку и атрибут download
+            downloadLink.href = imageUrl;
+            downloadLink.setAttribute('download', fileName); // Браузер предложит сохранить как...
+        });
+    });
 
     // открыть диалог выбора файлов
     addFileBtn.addEventListener('click', () => {
@@ -191,8 +208,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
     }
 
-    // отправление сообщение на сервер
-    document.getElementById("sendBtn").addEventListener("click", async function () {
+    // отправление сообщение на сервер по клику
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+
+    // отправление сообщение на сервер по Enter
+    document.getElementById("message").addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
         const textarea = document.getElementById("message");
         const messageText = textarea.value.trim();
         const chatId = getChatIdFromUrl();
@@ -245,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayError(errorMessage);
             }
         }
-    });
+    }
 
     const editBtns = document.querySelectorAll(".editBtn");
     editBtns.forEach(editBtn => {
