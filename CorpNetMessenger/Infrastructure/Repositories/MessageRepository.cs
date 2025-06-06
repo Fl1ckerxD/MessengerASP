@@ -16,7 +16,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
             if (!_context.Chats.Any(c => c.Id == chatId)) // Проверка на наличие чата с таким id
                 throw new Exception("Такого чата нет");
-
+            
             return await _context.Messages // Получение сообщений из определенного чата 
                 .Where(m => m.ChatId == chatId)
                 .Include(m => m.User)
@@ -27,6 +27,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .Select(m => new MessageViewModel
                 {
                     Id = m.Id,
+                    UserId = m.UserId,
                     Content = m.Content,
                     SentAt = m.SentAt,
                     UserName = $"{m.User.LastName} {m.User.Name}",

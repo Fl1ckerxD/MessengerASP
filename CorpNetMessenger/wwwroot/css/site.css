@@ -262,10 +262,10 @@ body {
     font-size: 16px;
 }
 
-    .search-input:focus {
-        border-color: #007AFF;
-        background-color: #ffffff;
-    }
+.search-input:focus {
+    border-color: #007AFF;
+    background-color: #ffffff;
+}
 
 .employee-list {
 }
@@ -350,6 +350,30 @@ body {
     align-items: flex-start;
 }
 
+    .message:hover .message-actions {
+        display: flex;
+        flex-direction: column;
+    }
+
+.message-actions {
+    display: none;
+}
+
+    .message-actions button {
+        background-color: transparent;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .message-actions .editBtn:hover {
+        color: #0d6efd;
+    }
+
+    .message-actions .deleteBtn:hover {
+        color: #dc3545;
+    }
+
 .message-avatar {
     width: 40px;
     height: 40px;
@@ -364,6 +388,7 @@ body {
 }
 
 .message-content {
+    display: flex;
     padding: 10px;
     max-width: 70%;
     background-color: white;

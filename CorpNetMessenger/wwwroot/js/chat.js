@@ -43,6 +43,16 @@ hubConnection.on("UpdateMessage", function (messageId, newText) {
     }
 });
 
+// получение сигнала об удалении сообщения
+hubConnection.on("RemoveMessage", (messageId) => {
+    const messageElem = document.querySelector(`[data-message-id="${messageId}"]`);
+
+    if (messageElem) {
+        // удаляем элемент
+        messageElem.remove();
+    }
+});
+
 // получение ошибок
 hubConnection.on("Error", displayError);
 
@@ -274,19 +284,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // редактирование сообщения
     const editBtns = document.querySelectorAll(".editBtn");
     editBtns.forEach(editBtn => {
-        // редактирование сообщения
         editBtn.addEventListener("click", () => {
             const messageElem = editBtn.closest("[data-message-id]");
             const messageId = messageElem.getAttribute("data-message-id");
 
             const messageText = messageElem.querySelector(".message-text").textContent.trim();
-            const textarea = document.getElementById("message");
+            const messageInput = document.getElementById("message");
 
-            textarea.value = messageText;
+            messageInput.value = messageText;
 
-            textarea.dataset.editingMessageId = messageId;
+            messageInput.dataset.editingMessageId = messageId;
+            messageInput.focus();
+        });
+    });
+
+    // удаление сообщения
+    const deleteBtns = document.querySelectorAll(".deleteBtn");
+    deleteBtns.forEach(deleteBtn => {
+        deleteBtn.addEventListener("click", async () => {
+            const messageElem = deleteBtn.closest("[data-message-id]");
+            const messageId = messageElem.getAttribute("data-message-id");
+            const chatId = getChatIdFromUrl();
+
+            // отправляем через SignalR
+            await hubConnection.invoke("DeleteMessage", messageId, chatId);
+
+            // удаляем сообщение из интерфейса
+            messageElem.remove();
         });
     });
 

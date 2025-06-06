@@ -40,22 +40,26 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
 
             var user = HttpContext.User;
-            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            string currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            bool isInChat = await _chatService.UserInChat(id, userId);
+            bool isInChat = await _chatService.UserInChat(id, currentUserId);
 
             if (!isInChat)
             {
-                _logger.LogWarning("Пользователь {UserId} не состоит в чате {ChatId}", userId, id);
+                _logger.LogWarning("Пользователь {UserId} не состоит в чате {ChatId}", currentUserId, id);
                 return Forbid();
             }
 
             try
             {
                 var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id, take: 10);
-                var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId);
+                foreach (var message in messages)
+                {
+                    message.IsMine = message.UserId == currentUserId;
+                }
+                var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(currentUserId);
 
-                var currentUser = contacts.FirstOrDefault(u => u.Id == userId);
+                var currentUser = contacts.FirstOrDefault(u => u.Id == currentUserId);
                 if (currentUser != null)
                 {
                     contacts.Remove(currentUser);
@@ -81,7 +85,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при загрузке чата: {ChatId}, User: {UserId}", id, userId);
+                _logger.LogError(ex, "Ошибка при загрузке чата: {ChatId}, User: {UserId}", id, currentUserId);
                 return RedirectToAction("Index", "Home");
             }
         }

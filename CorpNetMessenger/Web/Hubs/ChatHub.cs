@@ -54,6 +54,24 @@ namespace CorpNetMessenger.Web.Hubs
             }
         }
 
+        public async Task DeleteMessage(string messageId, string chatId)
+        {
+            var user = Context.User;
+            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+            if (message == null)
+                return;
+
+            if (message.UserId != userId)
+                return; // Проверка прав
+
+            await _unitOfWork.Messages.DeleteAsync(messageId);
+            await _unitOfWork.SaveAsync();
+
+            await Clients.Group(chatId).SendAsync("RemoveMessage", messageId);
+        }
+
         public async Task LoadHistory(string chatId, int skip = 0, int take = 5)
         {
             var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
