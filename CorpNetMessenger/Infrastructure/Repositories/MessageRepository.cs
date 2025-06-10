@@ -1,4 +1,7 @@
-﻿using CorpNetMessenger.Domain.Entities;
+﻿using CorpNetMessenger.Application;
+using CorpNetMessenger.Application.Converters;
+using CorpNetMessenger.Domain.DTOs;
+using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
@@ -34,9 +37,18 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                     Attachments = m.Attachments.Select(c => new AttachmentViewModel
                     {
                         Id = c.Id.ToString(),
-                        Name = c.FileName
+                        Name = c.FileName,
+                        FileSize = BytesToStringConverter.Convert(c.FileLength)
                     })
                 }).ToListAsync();
+        }
+
+        public async Task<Message> GetMessageWithDetailsAsync(string id)
+        {
+            return await _context.Messages
+                .Include(m => m.User)
+                .Include(m => m.Attachments)
+                .FirstOrDefaultAsync(m => m.Id == id);
         }
     }
 }

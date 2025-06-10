@@ -3,6 +3,7 @@ using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace CorpNetMessenger.Infrastructure.Services
 {
@@ -26,11 +27,26 @@ namespace CorpNetMessenger.Infrastructure.Services
         {
             try
             {
-                return await _signInManager.PasswordSignInAsync(
-                    model.UserName,
+                var user = await _userManager.FindByNameAsync(model.UserName);
+                if (user == null)
+                    return SignInResult.Failed;
+
+                var result = await _signInManager.PasswordSignInAsync(
+                    user,
                     model.Password,
                     model.RememberMe,
                     lockoutOnFailure: false);
+
+                if (result.Succeeded)
+                {
+                    var fullName = $"{user.LastName} {user.Name}";
+
+                    // Добавляем claim
+                    var claims = new List<Claim> { new Claim("FullName", fullName) };
+                    await _userManager.AddClaimsAsync(user, claims);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {

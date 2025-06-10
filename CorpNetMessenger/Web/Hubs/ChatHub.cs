@@ -63,7 +63,11 @@ namespace CorpNetMessenger.Web.Hubs
             if (message == null)
                 return;
 
-            if (message.UserId != userId)
+            bool isAuthorized = message.UserId == userId
+                      || user.IsInRole("Admin")
+                      || user.IsInRole("Mod");
+
+            if (!isAuthorized)
                 return; // Проверка прав
 
             await _unitOfWork.Messages.DeleteAsync(messageId);

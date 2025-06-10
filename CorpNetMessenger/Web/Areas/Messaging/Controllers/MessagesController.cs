@@ -61,19 +61,11 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                await _chatService.SaveMessage(request, userId);
+                string messageId = await _chatService.SaveMessage(request, userId);
+                var messageDto = await _chatService.GetMessageAsync(messageId);
 
-                var attachmentsDto = new List<AttachmentDto>();
-                foreach (var attachment in attachments)
-                {
-                    attachmentsDto.Add(new AttachmentDto
-                    {
-                        Id = attachment.Id.ToString(),
-                        FileName = attachment.FileName,
-                    });
-                }
                 await _hubContext.Clients.Group(request.ChatId)
-                    .SendAsync("Receive", request.Text, attachmentsDto, user.Identity.Name, DateTime.Now);
+                    .SendAsync("Receive", messageDto);
             }
             catch (Exception ex)
             {

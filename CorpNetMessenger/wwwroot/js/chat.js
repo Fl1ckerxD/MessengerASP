@@ -11,26 +11,93 @@ const take = 5;
 let hasMoreMessages = true;
 
 // получение нового сообщения
-hubConnection.on("Receive", function (message, attachments, userName, dateUtc) {
-    // создаем элемент <b> для первой части сообщения
-    const firstPartElem = document.createElement("b");
-    firstPartElem.textContent = `${dateUtc} ${userName}: `;
+hubConnection.on("Receive", function (message) {
+    const chatroom = document.getElementById("chatroom");
 
-    // создает элемент <p> для сообщения пользователя
-    const elem = document.createElement("p");
-    elem.appendChild(firstPartElem);
-    elem.appendChild(document.createTextNode(message));
-    if (attachments.length !== 0) {
-        attachments.forEach(file => {
-            const refFile = document.createElement("a");
-            refFile.href = `/api/messages/download/${file.id}`;
-            refFile.textContent = `${file.fileName}`;
-            elem.appendChild(refFile);
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message");
+    messageDiv.setAttribute("data-message-id", message.id); // добавить ид сообщения
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="message-content">
+                <div class="d-flex flex-column">
+                    <div class="message-header">
+                        <span class="message-author">${message.user.fullName}</span>
+                        <span class="message-time">${message.sentAt}</span>
+                    </div>
+                    <p class="message-text">${message.text}</p>
+                </div>
+            </div>
+    `;
+
+    // добавляем вложения
+    if (message.attachments.length > 0) {
+        const attachmentsDiv = document.createElement("div");
+        attachmentsDiv.classList.add("attachments");
+
+        message.attachments.forEach(attachment => {
+            if (attachment.isImage) {
+                attachmentsDiv.innerHTML += `
+                <div class="image-preview">
+                        <img src="/api/messages/download/${attachment.id}"
+                             alt="${attachment.fileName}"
+                             class="message-image"
+                             data-bs-toggle="modal"
+                             data-bs-target="#imageModal"
+                             data-src="/api/messages/download/${attachment.id}"
+                             style="max-width: 300px; max-height: 300px;" />
+                    </div>
+                `;
+            }
+            else {
+                attachmentsDiv.innerHTML += `
+                    <div class="file-download">
+                        <div class="file-icon">
+                            <i class="bi bi-file-earmark"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">${attachment.fileName}</div>
+                            <div class="file-size">${attachment.fileSize}</div>
+                        </div>
+                        <a class="download-btn" href="/api/messages/download/${attachment.id}" download>
+                            Скачать
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </div>
+                    `;
+            }
         });
+
+        messageDiv.querySelector(".message-content .d-flex.flex-column").appendChild(attachmentsDiv);
     }
 
-    // добавляем новый элемент на страницу
-    document.getElementById("chatroom").appendChild(elem);
+    // добавляем кнопки действий (если сообщение от текущего пользователя или админа)
+    if (message.user.id === currentUserId || isAdminOrModerator()) {
+        const actionsDiv = document.createElement("div");
+        actionsDiv.classList.add("message-actions");
+
+        if (message.user.id === currentUserId) {
+            actionsDiv.innerHTML = `
+                 <button class="editBtn" title="Редактировать">
+                    <i class="bi bi-pencil-square"></i>
+                </button>`;
+        }
+
+        actionsDiv.innerHTML += `
+                 <button class="deleteBtn" title="Удалить">
+                    <i class="bi bi-trash"></i>
+                </button>`;
+
+        messageDiv.querySelector(".message-content").appendChild(actionsDiv);
+    }
+
+    // добавляем сообщение в чат
+    chatroom.appendChild(messageDiv);
+
+    // прокручиваем вниз
+    chatroom.scrollTop = chatroom.scrollHeight;
 });
 
 // получение отредактированного сообщения
@@ -132,6 +199,12 @@ function scrollToBottom() {
         chatroom.scrollTop = chatroom.scrollHeight;
     }
 }
+
+function isAdminOrModerator() {
+    return currentUserRoles.includes("Admin") || currentUserRoles.includes("Mod");
+}
+
+let messageToDeleteId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
@@ -284,10 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // редактирование сообщения
-    const editBtns = document.querySelectorAll(".editBtn");
-    editBtns.forEach(editBtn => {
-        editBtn.addEventListener("click", () => {
+    document.getElementById("chatroom").addEventListener("click", (e) => {
+        // редактирование сообщения
+        const editBtn = e.target.closest(".editBtn");
+        if (editBtn) {
             const messageElem = editBtn.closest("[data-message-id]");
             const messageId = messageElem.getAttribute("data-message-id");
 
@@ -298,23 +371,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
             messageInput.dataset.editingMessageId = messageId;
             messageInput.focus();
-        });
-    });
+        }
 
-    // удаление сообщения
-    const deleteBtns = document.querySelectorAll(".deleteBtn");
-    deleteBtns.forEach(deleteBtn => {
-        deleteBtn.addEventListener("click", async () => {
+        // открытие окна подтверждения при удалении сообщения
+        const deleteBtn = e.target.closest(".deleteBtn");
+        if (deleteBtn) {
             const messageElem = deleteBtn.closest("[data-message-id]");
             const messageId = messageElem.getAttribute("data-message-id");
-            const chatId = getChatIdFromUrl();
 
-            // отправляем через SignalR
-            await hubConnection.invoke("DeleteMessage", messageId, chatId);
+            messageToDeleteId = messageId;
+            const modal = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
+            modal.show();
+        }
+    });
 
-            // удаляем сообщение из интерфейса
-            messageElem.remove();
-        });
+    // модальное окно подтверждения удаления сообщения
+    document.getElementById("confirmDeleteBtn").addEventListener("click", async () => {
+        if (!messageToDeleteId) return;
+
+        const chatId = getChatIdFromUrl();
+
+        // отправляем через SignalR
+        await hubConnection.invoke("DeleteMessage", messageToDeleteId, chatId);
+
+        // закрываем модальное окно
+        bootstrap.Modal.getInstance(document.getElementById("confirmDeleteModal")).hide();
+
+        // очищаем ID
+        messageToDeleteId = null;
     });
 
     // добавление сообщений при прокрутки вверх

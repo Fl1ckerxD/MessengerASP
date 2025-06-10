@@ -1,4 +1,5 @@
-﻿@model IEnumerable<MessageViewModel>
+﻿@using System.Security.Claims
+@model IEnumerable<MessageViewModel>
 
 <div class="chat-header">
     <div class="chat-title">
@@ -54,12 +55,15 @@
                         </div>
                     }
                 </div>
-                @if (message.IsMine)
+                @if (message.IsMine || User.IsInRole("Admin") || User.IsInRole("Mod"))
                 {
                     <div class="message-actions">
-                        <button class="editBtn" title="Редактировать">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
+                        @if (message.IsMine)
+                        {
+                            <button class="editBtn" title="Редактировать">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                        }
                         <button class="deleteBtn" title="Удалить">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -86,6 +90,13 @@
 
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/chat.js"></script>
+<script>
+    // Получаем данные из серверной части
+    const currentUserId = "@User.FindFirstValue(ClaimTypes.NameIdentifier)";
+    const currentUserRoles = @Json.Serialize(User.Claims
+        .Where(c => c.Type == ClaimTypes.Role)
+        .Select(c => c.Value));
+</script>
 
 <!-- Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
@@ -99,6 +110,25 @@
                     <i class="bi bi-download"></i>
                 </a>
                 <button type="button" class="main-button" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Подтвердите удаление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                Вы действительно хотите удалить это сообщение? Это действие нельзя отменить.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
             </div>
         </div>
     </div>

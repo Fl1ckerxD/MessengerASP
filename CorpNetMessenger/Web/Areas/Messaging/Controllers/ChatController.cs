@@ -1,5 +1,4 @@
-﻿using AutoMapper.Execution;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -52,7 +51,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id, take: 10);
+                var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id, take: 20);
                 foreach (var message in messages)
                 {
                     message.IsMine = message.UserId == currentUserId;

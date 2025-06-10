@@ -1,4 +1,5 @@
-﻿using CorpNetMessenger.Application.Common;
+﻿using AutoMapper;
+using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
@@ -10,10 +11,12 @@ namespace CorpNetMessenger.Infrastructure.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ChatService> _logger;
-        public ChatService(IUnitOfWork unitOfWork, ILogger<ChatService> logger)
+        private readonly IMapper _mapper;
+        public ChatService(IUnitOfWork unitOfWork, ILogger<ChatService> logger, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -22,8 +25,8 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="content">Текст сообщения</param>
         /// <param name="userId">Id пользователя отправившего сообщение</param>
         /// <param name="chatId">Чат в который было отправлено сообщение</param>
-        /// <returns></returns>
-        public async Task SaveMessage(ChatMessageDto request, string userId)
+        /// <returns>Возвращает Id сохраненного сообщения</returns>
+        public async Task<string> SaveMessage(ChatMessageDto request, string userId)
         {
             try
             {
@@ -42,10 +45,14 @@ namespace CorpNetMessenger.Infrastructure.Services
 
                 await _unitOfWork.Messages.AddAsync(message);
                 await _unitOfWork.SaveAsync();
+
+                return message.Id;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при сохранении сообщения");
+                string er = "Ошибка при сохранении сообщения";
+                _logger.LogError(ex, er);
+                throw new Exception(er);
             }
         }
 
@@ -87,6 +94,22 @@ namespace CorpNetMessenger.Infrastructure.Services
         {
             var chatUser = await _unitOfWork.ChatUsers.GetByPredicateAsync(cu => cu.ChatId == chatId && cu.UserId == userId);
             return chatUser != null;
+        }
+
+        /// <summary>
+        /// Получает сообщение по его идентификатору и преобразует в DTO для передачи клиенту.
+        /// </summary>
+        /// <param name="messageId">Идентификатор сообщения</param>
+        /// <returns>Объект <see cref="MessageDto"/>, представляющий сообщение с дополнительными данными</returns>
+        /// <exception cref="ArgumentNullException">Если сообщение с указанным ID не найдено</exception>
+        public async Task<MessageDto> GetMessageAsync(string messageId)
+        {
+            var messageEntity = await _unitOfWork.Messages.GetMessageWithDetailsAsync(messageId);
+            if (messageEntity == null)
+                throw new ArgumentNullException(nameof(messageId), "Сообщение не найдено");
+
+            var messageDto = _mapper.Map<MessageDto>(messageEntity);
+            return messageDto;
         }
     }
 }

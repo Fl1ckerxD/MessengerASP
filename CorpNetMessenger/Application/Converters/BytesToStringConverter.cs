@@ -1,13 +1,13 @@
 ﻿namespace CorpNetMessenger.Application.Converters
 {
-    public class BytesToStringConverter
+    public static class BytesToStringConverter
     {
         /// <summary>
         /// Конвертирование размера файла из байтов в килобайты, мегабайты, гигабайты и т.д.
         /// </summary>
         /// <param name="fileLength">Количество байтов</param>
         /// <returns>Возвращает размер файла в килобайты, мегабайты, гигабайты и т.д.</returns>
-        public string Convert(long fileLength)
+        public static string Convert(long fileLength)
         {
             string[] suf = { "Byt", "KB", "MB", "GB", "TB", "PB", "EB" };
             if (fileLength == 0)
