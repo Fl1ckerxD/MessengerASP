@@ -53,7 +53,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             if (!isInChat)
                 return StatusCode(403, "Вы не состоите в этом чате");
 
-            if (string.IsNullOrWhiteSpace(message))
+            if (string.IsNullOrWhiteSpace(message) && !attachments.Any())
                 return BadRequest("Сообщение не может быть пустым");
 
             if (message.Length > 200)

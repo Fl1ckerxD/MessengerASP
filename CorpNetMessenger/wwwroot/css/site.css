@@ -499,6 +499,36 @@ body {
     padding: 0;
 }
 
+.attachment-list {
+    display: flex;
+    gap: 10px;
+}
+
+.attachment-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    background-color: var(--attachment);
+    border-radius: 10px;
+    width: 150px;
+    height: 90px;
+    margin-bottom: 15px;
+}
+
+.delete-attachment-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: white;
+    border-radius: 50%;
+    border: none;
+}
+
+    .delete-attachment-btn:hover {
+        background-color: var(--muted);
+    }
+
 .chat-input {
     flex: 1;
     background: none;

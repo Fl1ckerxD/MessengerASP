@@ -256,19 +256,34 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         addedFiles.push(fileDto);
 
-        const li = document.createElement('li');
-        li.innerHTML = `
-        <span title="${file.name}">${truncateFileName(file.name)}</span>
-        <button class="delete-btn" title="Удалить">&#10006;</button>
+        // -----------------------------------------
+        //const li = document.createElement('li');
+        //li.innerHTML = `
+        //<span title="${file.name}">${truncateFileName(file.name)}</span>
+        //<button class="delete-btn" title="Удалить">&#10006;</button>
+        //`;
+
+        const attachmentDiv = document.createElement('div');
+        attachmentDiv.classList.add("attachment-container")
+        attachmentDiv.innerHTML = `
+            <div class="file-icon">
+                <i class="bi bi-file-earmark"></i>
+            </div>
+            <div class="file-info">
+                <div class="file-name">${truncateFileName(file.name)}</div>
+                <div class="file-size">${formatBytes(file.size)}</div>
+            </div>
+            <button class="delete-attachment-btn" title="Удалить">&#10006;</button>
         `;
 
         // удаление файла
-        li.querySelector('.delete-btn').addEventListener('click', () => {
+        attachmentDiv.querySelector('.delete-attachment-btn').addEventListener('click', () => {
             removeFile(fileDto.id);
-            li.remove();
+            attachmentDiv.remove();
         });
+        // -----------------------------------------
 
-        fileList.appendChild(li);
+        fileList.appendChild(attachmentDiv);
     }
 
     // удаление файла из списка
@@ -280,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ограничение длины имени файла
-    function truncateFileName(name, maxLength = 20) {
+    function truncateFileName(name, maxLength = 13) {
         return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
     }
 
@@ -300,12 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageText = textarea.value.trim();
         const chatId = getChatIdFromUrl();
 
-        if (!messageText) return;
-
         const messageId = textarea.dataset.editingMessageId;
 
         if (messageId) {
             // режим редактирования
+            if (!messageText) return;
             await hubConnection.invoke("EditMessage", messageId, messageText, chatId);
 
             // очистка состояние редактирования
@@ -409,4 +423,15 @@ function getChatIdFromUrl() {
     const path = window.location.pathname;
     const parts = path.split('/');
     return parts[parts.length - 1];
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return "0 Byte";
+
+    const suffixes = ["Byte", "KB", "MB", "GB", "TB", "PB", "EB"];
+    const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024));
+
+    let formatted = parseFloat((bytes / Math.pow(1024, i)).toFixed(1));
+
+    return `${formatted} ${suffixes[i]}`;
 }
