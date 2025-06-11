@@ -6,14 +6,116 @@ const hubConnection = new signalR.HubConnectionBuilder()
 // кнопка должна быть не активной пока не будет подключения к хабу
 document.getElementById("sendBtn").disabled = true;
 
-let skip = 5;
+let skip = 20;
 const take = 5;
 let hasMoreMessages = true;
 
 // получение нового сообщения
 hubConnection.on("Receive", function (message) {
     const chatroom = document.getElementById("chatroom");
+    const messageDiv = createMessageDiv(message);
 
+    // добавляем сообщение в чат
+    chatroom.appendChild(messageDiv);
+
+    // прокручиваем вниз
+    chatroom.scrollTop = chatroom.scrollHeight;
+    skip++;
+});
+
+// получение отредактированного сообщения
+hubConnection.on("UpdateMessage", function (messageId, newText) {
+    const messageElem = document.querySelector(`[data-message-id="${messageId}"]`);
+
+    if (messageElem) {
+        // обновляем текст
+        messageElem.querySelector(".message-text").textContent = newText
+    }
+});
+
+// получение сигнала об удалении сообщения
+hubConnection.on("RemoveMessage", (messageId) => {
+    const messageElem = document.querySelector(`[data-message-id="${messageId}"]`);
+
+    if (messageElem) {
+        // удаляем элемент
+        messageElem.remove();
+        skip--;
+    }
+});
+
+// получение ошибок
+hubConnection.on("Error", displayError);
+
+// получение истории сообщений
+hubConnection.on("ReceiveHistory", (messages) => {
+    const chatBox = document.getElementById("chatroom");
+
+    // Сохраняем текущее состояние прокрутки
+    const previousScrollHeight = chatBox.scrollHeight;
+    const previousScrollTop = chatBox.scrollTop;
+
+    if (messages.length === 0) {
+        hasMoreMessages = false;
+        console.log("Бошльше сообщений нет");
+        return;
+    }
+
+    messages.forEach(message => {
+        const messageDiv = createMessageDiv(message);
+        chatBox.prepend(messageDiv); // вставляем в начало - самые старые сверху
+    });
+
+    // Восстанавливаем позицию прокрутки
+    const newScrollHeight = chatBox.scrollHeight;
+    chatBox.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+});
+
+// подключение к хабу на сервере 
+hubConnection.start()
+    .then(function () {
+        document.getElementById("sendBtn").disabled = false; // активируем кнопку отправления сообщения
+        const chatId = getChatIdFromUrl(); // получаем id группы
+        hubConnection.invoke("Enter", chatId); // подключаемся к группе
+    })
+    .catch(function (err) {
+        return console.error(err.toString());
+    });
+
+function displayError(error) {
+    const errorElem = document.createElement("span");
+    errorElem.textContent = error;
+    errorElem.style.color = "red"; // Устанавливаем цвет текста
+
+    document.getElementById("chatroom").appendChild(errorElem);
+
+    // Удаляем через 5 секунд
+    setTimeout(() => {
+        chatroom.removeChild(errorElem);
+    }, 5000);
+};
+
+function loadHistory() {
+    if (!hasMoreMessages) return;
+
+    const chatId = getChatIdFromUrl(); // получаем id группы
+
+    hubConnection.invoke("LoadHistory", chatId, skip, take);
+    skip += take;
+};
+
+function scrollToBottom() {
+    const chatroom = document.getElementById("chatroom");
+    if (chatroom) {
+        chatroom.scrollTop = chatroom.scrollHeight;
+    }
+}
+
+function isAdminOrModerator() {
+    return currentUserRoles.includes("Admin") || currentUserRoles.includes("Mod");
+}
+
+function createMessageDiv(message) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message");
     messageDiv.setAttribute("data-message-id", message.id); // добавить ид сообщения
@@ -92,116 +194,7 @@ hubConnection.on("Receive", function (message) {
 
         messageDiv.querySelector(".message-content").appendChild(actionsDiv);
     }
-
-    // добавляем сообщение в чат
-    chatroom.appendChild(messageDiv);
-
-    // прокручиваем вниз
-    chatroom.scrollTop = chatroom.scrollHeight;
-});
-
-// получение отредактированного сообщения
-hubConnection.on("UpdateMessage", function (messageId, newText) {
-    const messageElem = document.querySelector(`[data-message-id="${messageId}"]`);
-
-    if (messageElem) {
-        // обновляем текст
-        messageElem.querySelector(".message-text").textContent = newText
-    }
-});
-
-// получение сигнала об удалении сообщения
-hubConnection.on("RemoveMessage", (messageId) => {
-    const messageElem = document.querySelector(`[data-message-id="${messageId}"]`);
-
-    if (messageElem) {
-        // удаляем элемент
-        messageElem.remove();
-    }
-});
-
-// получение ошибок
-hubConnection.on("Error", displayError);
-
-// получение истории сообщений
-hubConnection.on("ReceiveHistory", (messages) => {
-    const chatBox = document.getElementById("chatroom");
-
-    // Сохраняем текущее состояние прокрутки
-    const previousScrollHeight = chatBox.scrollHeight;
-    const previousScrollTop = chatBox.scrollTop;
-
-    if (messages.length === 0) {
-        hasMoreMessages = false;
-        console.log("Бошльше сообщений нет");
-        return;
-    }
-
-    messages.forEach(message => {
-        const messageEl = document.createElement("div");
-        messageEl.setAttribute("data-message-id", message.id);
-        let filesHtml = "";
-        if (message.attachments && message.attachments.length > 0) {
-            filesHtml = message.attachments.map(f =>
-                `<a href="/api/messages/download/${f.id}">${f.name}</a>`
-            ).join(", ");
-        }
-
-        messageEl.innerHTML = `
-        <b>${new Date(message.sentAt).toLocaleString()}:</b> ${message.content}
-        ${filesHtml ? `<div class="attachments">${filesHtml}</div>` : ""}
-        `;
-
-        chatBox.prepend(messageEl); // вставляем в начало - самые старые сверху
-    });
-
-    // Восстанавливаем позицию прокрутки
-    const newScrollHeight = chatBox.scrollHeight;
-    chatBox.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
-});
-
-// подключение к хабу на сервере 
-hubConnection.start()
-    .then(function () {
-        document.getElementById("sendBtn").disabled = false; // активируем кнопку отправления сообщения
-        const chatId = getChatIdFromUrl(); // получаем id группы
-        hubConnection.invoke("Enter", chatId); // подключаемся к группе
-    })
-    .catch(function (err) {
-        return console.error(err.toString());
-    });
-
-function displayError(error) {
-    const errorElem = document.createElement("span");
-    errorElem.textContent = error;
-    errorElem.style.color = "red"; // Устанавливаем цвет текста
-
-    document.getElementById("chatroom").appendChild(errorElem);
-
-    // Удаляем через 5 секунд
-    setTimeout(() => {
-        chatroom.removeChild(errorElem);
-    }, 5000);
-};
-
-function loadHistory() {
-    if (!hasMoreMessages) return;
-
-    const chatId = getChatIdFromUrl(); // получаем id группы
-
-    hubConnection.invoke("LoadHistory", chatId, skip, take);
-    skip += take;
-};
-
-function scrollToBottom() {
-    const chatroom = document.getElementById("chatroom");
-    if (chatroom) {
-        chatroom.scrollTop = chatroom.scrollHeight;
-    }
-}
-
-function isAdminOrModerator() {
-    return currentUserRoles.includes("Admin") || currentUserRoles.includes("Mod");
+    return messageDiv;
 }
 
 let messageToDeleteId = null;

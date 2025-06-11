@@ -9,5 +9,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
         Task<OperationResult> EditMessage(string messageId, string newText, string userId);
         Task<bool> UserInChat(string chatId, string userId);
         Task<MessageDto> GetMessageAsync(string messageId);
+        Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5);
     }
 }

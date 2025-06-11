@@ -1,5 +1,6 @@
 ﻿@using System.Security.Claims
-@model IEnumerable<MessageViewModel>
+@using CorpNetMessenger.Domain.DTOs
+@model IEnumerable<MessageDto>
 
 <div class="chat-header">
     <div class="chat-title">
@@ -16,20 +17,20 @@
             <div class="message-content">
                 <div class="d-flex flex-column">
                     <div class="message-header">
-                        <span class="message-author">@message.UserName</span>
+                        <span class="message-author">@message.User.FullName</span>
                         <span class="message-time">@message.SentAt</span>
                     </div>
-                    <p class="message-text">@message.Content</p>
+                    <p class="message-text">@message.Text</p>
                     @if (message.Attachments.Any())
                     {
                         <div class="attachments">
                             @foreach (var attachment in message.Attachments)
                             {
-                                if (attachment.IsImage())
+                                if (attachment.IsImage)
                                 {
                                     <div class="image-preview">
                                         <img src="/api/messages/download/@attachment.Id"
-                                             alt="@attachment.Name" class="message-image"
+                                             alt="@attachment.FileName" class="message-image"
                                              data-bs-toggle="modal" data-bs-target="#imageModal"
                                              data-src="/api/messages/download/@attachment.Id"
                                              style="max-width: 300px; max-height: 300px;" />
@@ -42,7 +43,7 @@
                                             <i class="bi bi-file-earmark"></i>
                                         </div>
                                         <div class="file-info">
-                                            <div class="file-name">@attachment.Name</div>
+                                            <div class="file-name">@attachment.FileName</div>
                                             <div class="file-size">@attachment.FileSize</div>
                                         </div>
                                         <a class="download-btn" href="/api/messages/download/@attachment.Id" download>
@@ -55,10 +56,10 @@
                         </div>
                     }
                 </div>
-                @if (message.IsMine || User.IsInRole("Admin") || User.IsInRole("Mod"))
+                @if (message.User.Id == User.FindFirstValue(ClaimTypes.NameIdentifier) || User.IsInRole("Admin") || User.IsInRole("Mod"))
                 {
                     <div class="message-actions">
-                        @if (message.IsMine)
+                        @if (message.User.Id == User.FindFirstValue(ClaimTypes.NameIdentifier))
                         {
                             <button class="editBtn" title="Редактировать">
                                 <i class="bi bi-pencil-square"></i>

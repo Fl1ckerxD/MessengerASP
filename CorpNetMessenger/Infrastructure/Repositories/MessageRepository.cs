@@ -15,11 +15,8 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<MessageViewModel>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
+        public async Task<IEnumerable<Message>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
         {
-            if (!_context.Chats.Any(c => c.Id == chatId)) // Проверка на наличие чата с таким id
-                throw new Exception("Такого чата нет");
-            
             return await _context.Messages // Получение сообщений из определенного чата 
                 .Where(m => m.ChatId == chatId)
                 .Include(m => m.User)
@@ -27,20 +24,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .OrderByDescending(m => m.SentAt)
                 .Skip(skip)
                 .Take(take)
-                .Select(m => new MessageViewModel
-                {
-                    Id = m.Id,
-                    UserId = m.UserId,
-                    Content = m.Content,
-                    SentAt = m.SentAt,
-                    UserName = $"{m.User.LastName} {m.User.Name}",
-                    Attachments = m.Attachments.Select(c => new AttachmentViewModel
-                    {
-                        Id = c.Id.ToString(),
-                        Name = c.FileName,
-                        FileSize = BytesToStringConverter.Convert(c.FileLength)
-                    })
-                }).ToListAsync();
+                .ToListAsync();
         }
 
         public async Task<Message> GetMessageWithDetailsAsync(string id)

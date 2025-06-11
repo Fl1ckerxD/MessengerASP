@@ -48,7 +48,8 @@ namespace CorpNetMessenger.Infrastructure.Data
             modelBuilder.Entity<Attachment>()
                 .HasOne(f => f.Message)
                 .WithMany(f => f.Attachments)
-                .HasForeignKey(f => f.MessageId);
+                .HasForeignKey(f => f.MessageId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Chat)

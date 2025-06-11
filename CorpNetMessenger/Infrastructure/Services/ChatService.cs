@@ -111,5 +111,14 @@ namespace CorpNetMessenger.Infrastructure.Services
             var messageDto = _mapper.Map<MessageDto>(messageEntity);
             return messageDto;
         }
+
+        public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
+        {
+            if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId)) // Проверка наличия чата с таким id
+                throw new Exception("Такого чата нет");
+
+            var messages = _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
+            return _mapper.Map<List<MessageDto>>(messages.Result);
+        }
     }
 }

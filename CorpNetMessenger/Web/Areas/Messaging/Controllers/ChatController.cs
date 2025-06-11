@@ -51,11 +51,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(id, take: 20);
-                foreach (var message in messages)
-                {
-                    message.IsMine = message.UserId == currentUserId;
-                }
+                var messages = await _chatService.LoadHistoryChatAsync(id, take: 20);
                 var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(currentUserId);
 
                 var currentUser = contacts.FirstOrDefault(u => u.Id == currentUserId);

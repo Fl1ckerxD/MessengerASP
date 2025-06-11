@@ -78,7 +78,7 @@ namespace CorpNetMessenger.Web.Hubs
 
         public async Task LoadHistory(string chatId, int skip = 0, int take = 5)
         {
-            var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
+            var messages = await _chatService.LoadHistoryChatAsync(chatId, skip, take);
             await Clients.Caller.SendAsync("ReceiveHistory", messages);
         }
 
