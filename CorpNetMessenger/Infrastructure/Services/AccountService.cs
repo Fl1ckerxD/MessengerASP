@@ -3,7 +3,9 @@ using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CorpNetMessenger.Infrastructure.Services
 {
@@ -27,31 +29,42 @@ namespace CorpNetMessenger.Infrastructure.Services
         {
             try
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
-                if (user == null)
-                    return SignInResult.Failed;
-
                 var result = await _signInManager.PasswordSignInAsync(
-                    user,
+                    model.UserName,
                     model.Password,
                     model.RememberMe,
                     lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
-                    var fullName = $"{user.LastName} {user.Name}";
-
-                    // Добавляем claim
-                    var claims = new List<Claim> { new Claim("FullName", fullName) };
-                    await _userManager.AddClaimsAsync(user, claims);
+                    var user = await _userManager.FindByNameAsync(model.UserName);
+                    await UpdateFullNameClaim(user);
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Login error");
+                _logger.LogError(ex, "Login error for {UserName}", model.UserName);
                 return SignInResult.Failed;
+            }
+        }
+
+        private async Task UpdateFullNameClaim(User user)
+        {
+            var existingClaims = await _userManager.GetClaimsAsync(user);
+            var fullNameClaim = existingClaims.FirstOrDefault(c => c.Type == "FullName");
+
+            var currentFullName = $"{user.LastName} {user.Name}";
+
+            if (fullNameClaim == null)
+            {
+                await _userManager.AddClaimAsync(user, new Claim("FullName", currentFullName));
+            }
+            else if (fullNameClaim.Value != currentFullName)
+            {
+                await _userManager.ReplaceClaimAsync(user, fullNameClaim,
+                    new Claim("FullName", currentFullName));
             }
         }
 
@@ -65,22 +78,27 @@ namespace CorpNetMessenger.Infrastructure.Services
             try
             {
                 if (await _userManager.FindByEmailAsync(model.Email) != null)
-                    return IdentityResult.Failed(new IdentityError { Description = "Email already exists" });
+                    return IdentityResult.Failed(new IdentityError { Description = "Такая почта уже используется" });
 
                 var user = _mapper.Map<User>(model);
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (!result.Succeeded)
                 {
-                    var error = result.Errors.FirstOrDefault()?.Description;
-                    _logger.LogWarning("Registration failed: {Error}", error);
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Code));
+                    _logger.LogWarning("Registration failed for {Username}. Errors: {Errors}",
+                    user.UserName, errors);
+                }
+                else
+                {
+                    _logger.LogInformation("New user registered: {Username}", user.UserName);
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Registration error");
+                _logger.LogError(ex, "Registration error for user: {Login}", model.Login);
                 return IdentityResult.Failed(new IdentityError { Description = "Internal server error" });
             }
         }

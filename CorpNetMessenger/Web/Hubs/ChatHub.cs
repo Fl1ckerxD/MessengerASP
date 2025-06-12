@@ -2,6 +2,7 @@
 using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Hubs
@@ -12,6 +13,7 @@ namespace CorpNetMessenger.Web.Hubs
         private readonly ILogger<ChatHub> _logger;
         private readonly IChatService _chatService;
         private readonly IUnitOfWork _unitOfWork;
+        private static readonly ConcurrentDictionary<string, string> UserGroups = new();
         public ChatHub(ILogger<ChatHub> logger, IChatService chatService,
             IUnitOfWork unitOfWork)
         {
@@ -23,6 +25,14 @@ namespace CorpNetMessenger.Web.Hubs
         public async Task Enter(string chatId)
         {
             string userId = GetUserId();
+            string connectionId = Context.ConnectionId;
+
+            // Проверка уже существующего подключения
+            if (UserGroups.TryGetValue(connectionId, out var currentChat))
+            {
+                if (currentChat == chatId) return; // Уже в этом чате
+                await Groups.RemoveFromGroupAsync(connectionId, currentChat);
+            }
 
             bool isInChat = await _chatService.UserInChat(chatId, userId);
             if (!isInChat)
@@ -32,6 +42,17 @@ namespace CorpNetMessenger.Web.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
+            UserGroups[connectionId] = chatId;
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            string connectionId = Context.ConnectionId;
+            if (UserGroups.TryRemove(connectionId, out var chatId))
+            {
+                await Groups.RemoveFromGroupAsync(connectionId, chatId);
+            }
+            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task EditMessage(string messageId, string newText, string chatId)
@@ -39,6 +60,21 @@ namespace CorpNetMessenger.Web.Hubs
             try
             {
                 string userId = GetUserId();
+
+                // Проверка принадлежности соощения чату
+                var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+                if (message == null || message.ChatId != chatId)
+                {
+                    await Clients.Caller.SendAsync("Error", "Сообщение не найдено или не принадлежит чату");
+                    return;
+                }
+
+                // Проверка членства в чате
+                if (!await _chatService.UserInChat(chatId, userId))
+                {
+                    await Clients.Caller.SendAsync("Error", "Доступ запрещён");
+                    return;
+                }
 
                 var result = await _chatService.EditMessage(messageId, newText, userId);
 
@@ -56,41 +92,62 @@ namespace CorpNetMessenger.Web.Hubs
 
         public async Task DeleteMessage(string messageId, string chatId)
         {
-            var user = Context.User;
-            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            try
+            {
+                string userId = GetUserId();
 
-            var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
-            if (message == null)
-                return;
+                // Проверка принадлежности соощения чату
+                var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+                if (message == null || message.ChatId != chatId)
+                {
+                    await Clients.Caller.SendAsync("Error", "Сообщение не найдено или не принадлежит чату");
+                    return;
+                }
 
-            bool isAuthorized = message.UserId == userId
-                      || user.IsInRole("Admin")
-                      || user.IsInRole("Mod");
+                var result = await _chatService.DeleteMessage(messageId, userId);
 
-            if (!isAuthorized)
-                return; // Проверка прав
-
-            await _unitOfWork.Messages.DeleteAsync(messageId);
-            await _unitOfWork.SaveAsync();
-
-            await Clients.Group(chatId).SendAsync("RemoveMessage", messageId);
+                if (result.Success)
+                    await Clients.Group(chatId).SendAsync("RemoveMessage", messageId);
+                else
+                    await Clients.Caller.SendAsync("Error", result.Error);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка удаления сообщения {MessageId}", messageId);
+                await Clients.Caller.SendAsync("Error", "Ошибка при удалении сообщения");
+            }
         }
 
         public async Task LoadHistory(string chatId, int skip = 0, int take = 5)
         {
-            var messages = await _chatService.LoadHistoryChatAsync(chatId, skip, take);
-            await Clients.Caller.SendAsync("ReceiveHistory", messages);
+            try
+            {
+                string userId = GetUserId();
+
+                // Проверка членства в чате
+                if (!await _chatService.UserInChat(chatId, userId))
+                {
+                    await Clients.Caller.SendAsync("Error", "Доступ запрещён");
+                    return;
+                }
+
+                // Ограничиваем размер выборки
+                take = Math.Clamp(take, 1, 50);
+
+                var messages = await _chatService.LoadHistoryChatAsync(chatId, skip, take);
+                await Clients.Caller.SendAsync("ReceiveHistory", messages);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка загрузки истории для чата {ChatId}", chatId);
+                await Clients.Caller.SendAsync("Error", "Ошибка загрузки истории");
+            }
         }
 
         private string GetUserId()
         {
             var user = Context.User;
             return user.FindFirstValue(ClaimTypes.NameIdentifier);
-        }
-
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            await base.OnDisconnectedAsync(exception);
         }
     }
 }

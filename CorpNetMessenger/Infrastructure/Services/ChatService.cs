@@ -4,6 +4,7 @@ using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace CorpNetMessenger.Infrastructure.Services
 {
@@ -12,11 +13,14 @@ namespace CorpNetMessenger.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<ChatService> _logger;
         private readonly IMapper _mapper;
-        public ChatService(IUnitOfWork unitOfWork, ILogger<ChatService> logger, IMapper mapper)
+        private readonly UserManager<User> _userManager;
+        public ChatService(IUnitOfWork unitOfWork, ILogger<ChatService> logger,
+            IMapper mapper, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -28,6 +32,12 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <returns>Возвращает Id сохраненного сообщения</returns>
         public async Task<string> SaveMessage(ChatMessageDto request, string userId)
         {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
             try
             {
                 bool chatUser = await UserInChat(request.ChatId, userId);
@@ -50,9 +60,9 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                string er = "Ошибка при сохранении сообщения";
-                _logger.LogError(ex, er);
-                throw new Exception(er);
+                _logger.LogError(ex, "Ошибка при сохранении сообщения в чате {ChatId} пользователем {UserId}",
+                    request?.ChatId, userId);
+                throw new Exception("Ошибка сохранения сообщения", ex);
             }
         }
 
@@ -114,11 +124,54 @@ namespace CorpNetMessenger.Infrastructure.Services
 
         public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
         {
+            if (string.IsNullOrWhiteSpace(chatId))
+                throw new ArgumentException("Chat ID is required", nameof(chatId));
+
+            if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
+            if (take < 1 || take > 100) throw new ArgumentOutOfRangeException(nameof(take));
+
             if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId)) // Проверка наличия чата с таким id
                 throw new Exception("Такого чата нет");
 
-            var messages = _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
-            return _mapper.Map<List<MessageDto>>(messages.Result);
+            var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
+            return _mapper.Map<List<MessageDto>>(messages);
+        }
+
+        public async Task<OperationResult> DeleteMessage(string messageId, string userId)
+        {
+            try
+            {
+                var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+                if (message == null)
+                    return new OperationResult { Success = false, Error = "Сообщение не найдено" };
+
+                // Проверяем, является ли пользователь автором
+                if (message.UserId == userId)
+                {
+                    await _unitOfWork.Messages.DeleteAsync(messageId);
+                    await _unitOfWork.SaveAsync();
+
+                    return new OperationResult { Success = true };
+                }
+
+                // Проверяем роли
+                var userRoles = await _userManager.GetRolesAsync(new User { Id = userId });
+                var hasPermission = userRoles.Any(r => r == "Admin" || r == "Mod");
+
+                if (hasPermission)
+                {
+                    await _unitOfWork.Messages.DeleteAsync(messageId);
+                    await _unitOfWork.SaveAsync();
+                    return new OperationResult { Success = true };
+                }
+
+                return new OperationResult { Success = false, Error = "Недостаточно прав" };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка удаления сообщения {MessageId}", messageId);
+                return new OperationResult { Success = false, Error = "Внутренняя ошибка сервера" };
+            }
         }
     }
 }

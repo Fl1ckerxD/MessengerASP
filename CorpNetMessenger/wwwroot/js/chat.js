@@ -256,13 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         addedFiles.push(fileDto);
 
-        // -----------------------------------------
-        //const li = document.createElement('li');
-        //li.innerHTML = `
-        //<span title="${file.name}">${truncateFileName(file.name)}</span>
-        //<button class="delete-btn" title="Удалить">&#10006;</button>
-        //`;
-
         const attachmentDiv = document.createElement('div');
         attachmentDiv.classList.add("attachment-container")
         attachmentDiv.innerHTML = `
@@ -281,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
             removeFile(fileDto.id);
             attachmentDiv.remove();
         });
-        // -----------------------------------------
 
         fileList.appendChild(attachmentDiv);
     }
