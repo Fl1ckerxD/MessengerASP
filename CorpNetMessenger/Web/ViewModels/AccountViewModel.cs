@@ -38,7 +38,6 @@ namespace CorpNetMessenger.Web.ViewModels
         [MaxFileSize(5 * 1024 * 1024)] // 5MB
         [AllowedExtensions([".jpg", ".jpeg", ".png"])]
         public IFormFile? AvatarFile { get; set; }
-       // public string? AvatarUrl { get; set; }
 
         [StringLength(100, ErrorMessage = "Пароль должен быть не короче 6 символов.", MinimumLength = 6)]
         [DataType(DataType.Password)]

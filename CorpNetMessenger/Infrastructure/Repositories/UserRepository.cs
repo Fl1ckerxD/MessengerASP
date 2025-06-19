@@ -19,7 +19,6 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .Select(u => new ContactViewModel
                 {
                     Id = u.Id,
-                    ImageUrl = u.Image,
                     UserName = string.Format("{0} {1}", u.LastName, u.Name),
                     PostName = u.Post.Title
                 }).ToListAsync();

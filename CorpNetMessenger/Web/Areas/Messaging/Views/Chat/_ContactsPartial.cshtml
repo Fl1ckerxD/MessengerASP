@@ -2,9 +2,7 @@
 
 <div class="current-user-container">
     <div class="current-user">
-        <div class="user-avatar-large">
-            <i class="bi bi-person-fill"></i>
-        </div>
+        <img class="user-avatar-large" src="@Url.Action("GetAvatar", "Account", new { userId = Model.CurrentUser.Id })" alt="Аватар" />
         <div class="user-info">
             <div class="user-name">@Model.CurrentUser.UserName</div>
             <div class="user-role">@Model.CurrentUser.PostName</div>
@@ -24,9 +22,7 @@
     @foreach (var contact in Model.Contacts)
     {
         <div class="employee-item">
-            <div class="employee-avatar">
-                <i class="bi bi-person-fill"></i>
-            </div>
+            <img class="employee-avatar" src="@Url.Action("GetAvatar", "Account", new { userId = contact.Id })" alt="Аватар" />
             <div class="employee-info">
                 <div class="employee-name">@contact.UserName</div>
                 <span class="employee-post">@contact.PostName</span>

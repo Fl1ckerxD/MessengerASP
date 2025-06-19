@@ -11,9 +11,7 @@
     @foreach (var message in Model)
     {
         <div class="message" data-message-id="@message.Id">
-            <div class="message-avatar">
-                <i class="bi bi-person-fill"></i>
-            </div>
+            <img class="message-avatar" src="@Url.Action("GetAvatar", "Account", new { userId = message.User.Id })" alt="Аватар" />
             <div class="message-content">
                 <div class="d-flex flex-column">
                     <div class="message-header">
@@ -108,6 +106,7 @@
             </div>
             <div class="modal-footer d-flex">
                 <a id="downloadLink" class="main-button" href="#" download>
+                    Скачать
                     <i class="bi bi-download"></i>
                 </a>
                 <button type="button" class="main-button" data-bs-dismiss="modal">Закрыть</button>

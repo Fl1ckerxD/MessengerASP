@@ -1,6 +1,5 @@
 ﻿using CorpNetMessenger.Application;
 using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -63,25 +62,22 @@ namespace CorpNetMessenger.Web.Controllers
                 currentUser.PhoneNumber = model.PhoneNumber;
 
                 // Обновление аватарки с проверкой
-                if (model.AvatarFile == null || model.AvatarFile.Length == 0)
+                if (model.AvatarFile != null)
                 {
-                    ModelState.AddModelError(nameof(model.AvatarFile), "Выберите файл");
-                    return View(model);
-                }
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    await model.AvatarFile.CopyToAsync(memoryStream);
-
-                    // Проверка, что файл - изображение
-                    if (!FileHelper.IsImage(model.AvatarFile.FileName))
+                    using (var memoryStream = new MemoryStream())
                     {
-                        ModelState.AddModelError(nameof(model.AvatarFile), "Недопустимый формат изображения");
-                        return View(model);
-                    }
+                        await model.AvatarFile.CopyToAsync(memoryStream);
 
-                    currentUser.Image = memoryStream.ToArray();
-                    currentUser.ImageContentType = model.AvatarFile.ContentType;
+                        // Проверка, что файл - изображение
+                        if (!FileHelper.IsImage(model.AvatarFile.FileName))
+                        {
+                            ModelState.AddModelError(nameof(model.AvatarFile), "Недопустимый формат изображения");
+                            return View(model);
+                        }
+
+                        currentUser.Image = memoryStream.ToArray();
+                        currentUser.ImageContentType = model.AvatarFile.ContentType;
+                    }
                 }
 
                 // Обновление email с проверкой
@@ -146,10 +142,11 @@ namespace CorpNetMessenger.Web.Controllers
             }
         }
 
-        [HttpGet("Avatar")]
-        public async Task<IActionResult> GetAvatar()
+        [HttpGet("Avatar/{userId}")]
+        public async Task<IActionResult> GetAvatar(string userId)
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await _userManager.FindByIdAsync(userId);
+
             if (user?.Image == null)
                 return File("~/images/default-avatar.jpg", "image/jpeg");
 

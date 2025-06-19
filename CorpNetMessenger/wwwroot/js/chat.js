@@ -120,9 +120,7 @@ function createMessageDiv(message) {
     messageDiv.classList.add("message");
     messageDiv.setAttribute("data-message-id", message.id); // добавить ид сообщения
     messageDiv.innerHTML = `
-        <div class="message-avatar">
-                <i class="bi bi-person-fill"></i>
-            </div>
+        <img class="message-avatar" src="/Avatar/${message.user.id}" alt="Аватар" />
             <div class="message-content">
                 <div class="d-flex flex-column">
                     <div class="message-header">

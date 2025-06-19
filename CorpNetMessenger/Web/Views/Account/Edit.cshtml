@@ -1,4 +1,5 @@
-﻿@model AccountViewModel
+﻿@using System.Security.Claims
+@model AccountViewModel
 @{
     ViewData["Title"] = "Профиль";
 }
@@ -13,7 +14,7 @@
         <div class="profile-container-info">
             <div>
                 <input asp-for="AvatarFile" hidden />
-                <img class="profile-avatar" src="@Url.Action("GetAvatar", "Account")" alt="Аватар" />
+                <img class="profile-avatar" src="@Url.Action("GetAvatar", "Account", new { userId = User.FindFirstValue(ClaimTypes.NameIdentifier) })" alt="Аватар" />
                 <span asp-validation-for="AvatarFile" class="text-danger"></span>
             </div>
 
