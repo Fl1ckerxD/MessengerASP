@@ -1,0 +1,72 @@
+﻿@model AccountViewModel
+@{
+    ViewData["Title"] = "Профиль";
+}
+
+<div class="profile-container">
+    <div class="header-container">
+        <a href="/" class="back-button">❮ Назад</a>
+        <h2>Редактировать профиль</h2>
+    </div>
+    <form method="post" asp-action="Edit" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size: 20px;"></div>
+        <div class="profile-container-info">
+            <div>
+                <input asp-for="AvatarFile" hidden />
+                <img class="profile-avatar" src="@Url.Action("GetAvatar", "Account")" alt="Аватар" />
+                <span asp-validation-for="AvatarFile" class="text-danger"></span>
+            </div>
+
+            <div class="profile-info">
+                <div class="profile-input-form">
+                    <label asp-for="LastName"></label>
+                    <input asp-for="LastName" class="main-input-text" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+                <div class="profile-input-form">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="main-input-text" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="profile-input-form">
+                    <label asp-for="Patronymic"></label>
+                    <input asp-for="Patronymic" class="main-input-text" />
+                </div>
+                <div class="profile-input-form">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="main-input-text" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="profile-input-form">
+                    <label asp-for="PhoneNumber"></label>
+                    <input asp-for="PhoneNumber" class="main-input-text" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="input-form">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="main-input-text" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="input-form">
+            <label asp-for="NewPassword"></label>
+            <input asp-for="NewPassword" class="main-input-text" />
+            <span asp-validation-for="NewPassword" class="text-danger"></span>
+        </div>
+        <div class="input-form">
+            <label asp-for="PasswordConfirm"></label>
+            <input asp-for="PasswordConfirm" class="main-input-text" />
+            <span asp-validation-for="PasswordConfirm" class="text-danger"></span>
+        </div>
+        <button type="submit" class="main-button">Сохранить</button>
+    </form>
+    <form method="post" asp-controller="Auth" asp-action="Logout">
+        <button type="submit" class="logout-button">Выйти</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/edit.js"></script>
+}

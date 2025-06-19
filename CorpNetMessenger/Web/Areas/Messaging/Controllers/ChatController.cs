@@ -39,7 +39,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
 
             var user = HttpContext.User;
-            string currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            string currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier) 
+                ?? throw new UnauthorizedAccessException("User not authenticated"); ;
 
             bool isInChat = await _chatService.UserInChat(id, currentUserId);
 

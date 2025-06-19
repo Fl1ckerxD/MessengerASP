@@ -23,6 +23,7 @@ namespace CorpNetMessenger.Domain.Entities
         public string? Patronymic { get; set; }
 
         public byte[]? Image { get; set; }
+        public string? ImageContentType { get; set; }
         public int? StatusId { get; set; }
         public int? PostId { get; set; }
         public int? DepartmentId { get; set; }

@@ -15,21 +15,29 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
     [Route("api/[controller]")]
     public class MessagesController : Controller
     {
+        private const int MaxMessageLength = 200;
+        private const int MaxFileSize = 10 * 1024 * 1024; // 10MB
+        private const int MaxFileCount = 5;
+
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly ILogger<MessagesController> _logger;
         private readonly IChatService _chatService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFileService _fileService;
 
         public MessagesController(IHubContext<ChatHub> hubContext, ILogger<MessagesController> logger,
-            IChatService chatService, IUnitOfWork unitOfWork)
+            IChatService chatService, IUnitOfWork unitOfWork, IFileService fileService)
         {
             _logger = logger;
             _chatService = chatService;
             _hubContext = hubContext;
             _unitOfWork = unitOfWork;
+            _fileService = fileService;
         }
 
         [HttpPost("send")]
+        [RequestSizeLimit(15 * 1024 * 1024)] // 15MB на весь запрос
+        [RequestFormLimits(MultipartBodyLengthLimit = 15 * 1024 * 1024, ValueCountLimit = MaxFileCount)] // Лимит до 5 файлов
         public async Task<IActionResult> Send()
         {
             var form = await Request.ReadFormAsync();
@@ -38,72 +46,48 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             var chatId = form["chatId"].ToString();
             var files = form.Files;
 
-            var attachments = await GetFiles(files);
-            var request = new ChatMessageDto
-            {
-                ChatId = chatId,
-                Text = message,
-                Files = attachments
-            };
-
             var user = HttpContext.User;
             string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var isInChat = await _chatService.UserInChat(chatId, userId);
-            if (!isInChat)
-                return StatusCode(403, "Вы не состоите в этом чате");
+            if (!await _chatService.UserInChat(chatId, userId))
+                return Forbid("Вы не состоите в этом чате");
 
-            if (string.IsNullOrWhiteSpace(message) && !attachments.Any())
+            if (string.IsNullOrWhiteSpace(message) && !files.Any())
                 return BadRequest("Сообщение не может быть пустым");
 
-            if (message.Length > 200)
+            if (message.Length > MaxMessageLength)
                 return BadRequest("Сообщение превышает 200 символов");
 
             try
             {
-                string messageId = await _chatService.SaveMessage(request, userId);
+                var attachments = await _fileService.ProcessFiles(files);
+                var chatMessageDto = new ChatMessageDto
+                {
+                    ChatId = chatId,
+                    Text = message,
+                    Files = attachments
+                };
+
+                string messageId = await _chatService.SaveMessage(chatMessageDto, userId);
                 var messageDto = await _chatService.GetMessageAsync(messageId);
 
-                await _hubContext.Clients.Group(request.ChatId)
+                await _hubContext.Clients.Group(chatId)
                     .SendAsync("Receive", messageDto);
+
+                return Ok();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при сохранении сообщения");
-                return StatusCode(500, "Внутренняя ошибка сервера");
+                _logger.LogError(ex, "Ошибка отправки сообщения в чат {chatId}", chatId);
+                return StatusCode(500, "Ошибка обработки сообщения");
             }
-            return Ok();
-        }
-
-        private async Task<List<Attachment>> GetFiles(IFormFileCollection files)
-        {
-            var result = new List<Attachment>();
-            if (files == null || files.Count == 0)
-                return result;
-
-            foreach (var file in files)
-            {
-                if (file.Length > 10 * 1024 * 1024) // 10 MB
-                    throw new ArgumentException("Файл слишком большой");
-
-                using var memoryStream = new MemoryStream();
-                await file.CopyToAsync(memoryStream);
-
-                result.Add(new Attachment
-                {
-                    FileName = file.FileName,
-                    ContentType = file.ContentType,
-                    FileData = memoryStream.ToArray(),
-                    FileLength = file.Length
-                });
-            }
-            return result;
         }
 
         [HttpGet("download/{id}")]
         public async Task<IActionResult> DownloadFile(string id)
         {
             var attachment = await _unitOfWork.Files.GetByIdAsync(id);
+
             if (attachment == null)
                 return NotFound();
 

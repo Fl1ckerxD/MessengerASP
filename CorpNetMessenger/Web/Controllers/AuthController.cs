@@ -1,7 +1,7 @@
-﻿using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -26,8 +26,7 @@ namespace CorpNetMessenger.Web.Controllers
         public async Task<IActionResult> Register()
         {
             var model = new RegisterViewModel();
-            await LoadSelectListItem();
-
+            await LoadSelectLists();
             return View(model);
         }
 
@@ -43,11 +42,11 @@ namespace CorpNetMessenger.Web.Controllers
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("Пользователь {UserName} успешно вошел", model.UserName);
+                _logger.LogInformation("Успешный вход: {UserName}", model.UserName);
                 return RedirectToAction("Index", "Home");
             }
 
-            _logger.LogWarning("Неудачная попытка входа для {UserName}", model.UserName);
+            _logger.LogWarning("Неудачный вход: {UserName}", model.UserName);
             ModelState.AddModelError(string.Empty, "Неверный логин или пароль.");
             return View(model);
         }
@@ -56,32 +55,31 @@ namespace CorpNetMessenger.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                await LoadSelectListItem();
-                return View(model);
-            }
-
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    await LoadSelectLists();
+                    return View(model);
+                }
+
                 var result = await _accountService.Register(model);
 
                 if (result.Succeeded)
                 {
+                    _logger.LogInformation("Новый пользователь зарегистрирован: {Email}", model.Email);
                     return RedirectToAction("Login");
                 }
 
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-
+                await LoadSelectLists();
+                AddModelErrors(result);
                 return View(model);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка регистрации пользователя");
+                _logger.LogError(ex, "Ошибка регистрации: {Email}", model.Email);
                 ModelState.AddModelError(string.Empty, "Произошла внутренняя ошибка. Попробуйте позже.");
+                await LoadSelectLists();
                 return View(model);
             }
         }
@@ -94,7 +92,7 @@ namespace CorpNetMessenger.Web.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        private async Task LoadSelectListItem()
+        private async Task LoadSelectLists()
         {
             var departments = await _unitOfWork.Departments.GetAllAsync();
             var posts = await _unitOfWork.Posts.GetAllAsync();
@@ -103,13 +101,29 @@ namespace CorpNetMessenger.Web.Controllers
             {
                 Value = d.Id.ToString(),
                 Text = d.Title
-            });
+            }).ToList();
 
             ViewBag.Posts = posts.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
                 Text = p.Title
-            });
+            }).ToList();
+        }
+
+        private void AddModelErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                var key = error.Code switch
+                {
+                    var s when s.Contains("Password") => nameof(RegisterViewModel.Password),
+                    var s when s.Contains("Email") => nameof(RegisterViewModel.Email),
+                    var s when s.Contains("UserName") => nameof(RegisterViewModel.Login),
+                    _ => string.Empty
+                };
+
+                ModelState.AddModelError(key, error.Description);
+            }
         }
     }
 }

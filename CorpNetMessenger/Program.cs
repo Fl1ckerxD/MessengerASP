@@ -9,6 +9,7 @@ using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.Serialization.Formatters;
 
 namespace MessengerASP
 {
@@ -60,6 +61,7 @@ namespace MessengerASP
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IChatService, ChatService>();
+            builder.Services.AddScoped<IFileService, FileService>();
 
             var app = builder.Build();
 

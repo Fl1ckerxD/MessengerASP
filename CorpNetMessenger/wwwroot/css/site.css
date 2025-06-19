@@ -94,7 +94,7 @@ body {
     font-size: 20px;
 }
 
-.main-button {
+.main-button, .logout-button {
     padding: 8px;
     margin-top: 10px;
     background-color: var(--primary);
@@ -563,3 +563,62 @@ body {
         height: 50vh;
     }
 }
+
+.profile-container {
+    justify-self: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px black;
+    max-width: 75%;
+}
+
+    .profile-container h1, h2 {
+        font-size: 30px;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+    }
+
+.header-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.profile-container-info {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.profile-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.profile-input-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 100px;
+    max-width: 400px
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.logout-button {
+    background-color: red;
+}
+
+    .logout-button:hover {
+        background-color: darkred
+    }
