@@ -41,6 +41,23 @@ namespace CorpNetMessenger.Tests.Services
         }
 
         [Fact]
+        public async Task SaveMessage_WhenRequestIsNull_ThrowsArgumentNullException()
+        {
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            _chatService.SaveMessage(null, "user1"));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public async Task SaveMessage_WhenUserIdIsInvalid_ThrowsArgumentException(string? userId)
+        {
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+            _chatService.SaveMessage(new(), userId));
+        }
+
+        [Fact]
         public async Task SaveMessage_WithValidData_SavesMessageAndReturnsId()
         {
             var request = new ChatMessageDto
@@ -99,16 +116,252 @@ namespace CorpNetMessenger.Tests.Services
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _chatService.SaveMessage(request, userId));
         }
 
-        [Fact]
-        public async Task UserInChat_False_When_NotInChat()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task UserInChat_ReturnsCorrectResult(bool isUserInChat)
         {
+            var mockChatUser = isUserInChat ? new ChatUser() : null;
+
             _mockUnitOfWork.Setup(u => u.ChatUsers.GetByPredicateAsync(
                 It.IsAny<Expression<Func<ChatUser, bool>>>()))
-                .ReturnsAsync((ChatUser)null);
+                .ReturnsAsync(mockChatUser);
 
             var result = await _chatService.UserInChat("chat1", "user1");
 
-            Assert.False(result);
+            Assert.Equal(isUserInChat, result);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public async Task EditMessage_WhenNewTextIsInvalid_ReturnOperationResultFalse(string? newText)
+        {
+            string userId = "user1";
+
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new Message { UserId = userId });
+
+            var result = await _chatService.EditMessage("msg1", newText, userId);
+
+            result.Success.Should().BeFalse();
+            Assert.Equal("Текст не может быть пустым", result.Error);
+        }
+
+        [Fact]
+        public async Task EditMessage_TextTooLong_ReturnOperationResultFalse()
+        {
+            string userId = "user1";
+            string longText = new string('a', 201);
+
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new Message { UserId = userId });
+
+            var result = await _chatService.EditMessage("msg1", longText, userId);
+
+            result.Success.Should().BeFalse();
+            Assert.Equal("Сообщение слишком длинное", result.Error);
+        }
+
+        [Fact]
+        public async Task EditMessage_MessageNotFound_ReturnOperationResultFalse()
+        {
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync((Message)null);
+
+            var result = await _chatService.EditMessage("msg1", "newT", "user1");
+
+            result.Success.Should().BeFalse();
+            Assert.Equal("Сообщение не найдено", result.Error);
+        }
+
+        [Fact]
+        public async Task EditMessage_ValidInput_UpdatesMessageAndSaves()
+        {
+            var message = new Message
+            {
+                Id = "msg1",
+                UserId = "user1",
+                Content = "old text"
+            };
+
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync("msg1"))
+                .ReturnsAsync(message);
+
+            var result = await _chatService.EditMessage("msg1", "new text", "user1");
+
+            Assert.True(result.Success);
+            Assert.Equal("new text", message.Content);
+            _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once());
+        }
+
+        [Fact]
+        public async Task GetMessageAsync_WhenMessageNotFound_ThrowsArgumentNullException()
+        {
+            _mockUnitOfWork.Setup(u => u.Messages.GetMessageWithDetailsAsync(
+                It.IsAny<string>()))
+                .ReturnsAsync((Message)null);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _chatService.GetMessageAsync("msg1"));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        public async Task LoadHistoryChatAsync_InvalidChatId_ThrowsArgumentException(string chatId)
+        {
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+            _chatService.LoadHistoryChatAsync(chatId));
+        }
+
+        [Fact]
+        public async Task LoadHistoryChatAsync_NegativeSkip_ThrowsArgumentOutOfRangeException()
+        {
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            _chatService.LoadHistoryChatAsync("chatId", skip: -1));
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(101)]
+        public async Task LoadHistoryChatAsync_InvalidTake_ThrowsArgumentOutOfRangeException(int take)
+        {
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            _chatService.LoadHistoryChatAsync("chatId", take: take));
+        }
+
+        [Fact]
+        public async Task LoadHistoryChatAsync_ChatNotExists_ThrowsException()
+        {
+            _mockUnitOfWork.Setup(u => u.Chats.AnyAsync(
+                It.IsAny<Expression<Func<Chat, bool>>>()))
+                .ReturnsAsync(false);
+
+            await Assert.ThrowsAsync<Exception>(() =>
+                _chatService.LoadHistoryChatAsync("chatId"));
+        }
+
+        [Fact]
+        public async Task LoadHistoryChatAsync_WithSkipAndTake_AppliesPagination()
+        {
+            var chatId = "valid-chat-id";
+            var skip = 10;
+            var take = 20;
+
+            _mockUnitOfWork.Setup(u => u.Chats.AnyAsync(It.IsAny<Expression<Func<Chat, bool>>>()))
+                .ReturnsAsync(true);
+
+            _mockUnitOfWork.Setup(u => u.Messages.LoadHistoryChatAsync(chatId, skip, take))
+                .ReturnsAsync(new List<Message>());
+
+            await _chatService.LoadHistoryChatAsync(chatId, skip, take);
+
+            _mockUnitOfWork.Verify(u => u.Messages.LoadHistoryChatAsync(chatId, skip, take), Times.Once);
+        }
+
+        [Fact]
+        public async Task LoadHistoryChatAsync_ValidParameters_ReturnsMappedMessages()
+        {
+            var chatId = "chatId";
+            var testMessages = new List<Message>
+            {
+                new Message { Id = "msg1", Content = "Hello" },
+                new Message { Id = "msg2", Content = "World" }
+            };
+
+            var expectedDtos = new List<MessageDto>
+            {
+                new MessageDto { Id = "msg1", Text = "Hello" },
+                new MessageDto { Id = "msg2", Text = "World" }
+            };
+
+            _mockUnitOfWork.Setup(u => u.Chats.AnyAsync(It.IsAny<Expression<Func<Chat, bool>>>()))
+                .ReturnsAsync(true);
+
+            _mockUnitOfWork.Setup(u => u.Messages.LoadHistoryChatAsync(chatId, 0, 5))
+                .ReturnsAsync(testMessages);
+
+            _mockMapper.Setup(m => m.Map<List<MessageDto>>(testMessages))
+                .Returns(expectedDtos);
+
+            var result = await _chatService.LoadHistoryChatAsync(chatId);
+
+            result.Should().BeEquivalentTo(expectedDtos);
+            _mockUnitOfWork.Verify(u => u.Messages.LoadHistoryChatAsync(chatId, 0, 5), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteMessage_WhenMessageNotFound_ReturnOperationResultFalse()
+        {
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(
+                It.IsAny<string>()))
+                .ReturnsAsync((Message)null);
+
+            var result = await _chatService.DeleteMessage("msg1", "user1");
+
+            result.Success.Should().BeFalse();
+            Assert.Equal("Сообщение не найдено", result.Error);
+        }
+
+        [Fact]
+        public async Task DeleteMessage_WhenUserNotAuthorAndHasNotPermission_ReturnOperationResultFalse()
+        {
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(
+                It.IsAny<string>()))
+                .ReturnsAsync(new Message());
+
+            _mockUserManager.Setup(u => u.GetRolesAsync(It.IsAny<User>()))
+                .ReturnsAsync(new List<string>());
+
+            var result = await _chatService.DeleteMessage("msg1", "user1");
+
+            result.Success.Should().BeFalse();
+            Assert.Equal("Недостаточно прав", result.Error);
+        }
+
+        [Theory]
+        [InlineData("Admin")]
+        [InlineData("Mod")]
+        public async Task DeleteMessage_WhenUserNotAuthorAndHasPermission_ReturnOperationResultTrue(string role)
+        {
+            string msgId = "msg1";
+
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(
+                It.IsAny<string>()))
+                .ReturnsAsync(new Message());
+
+            _mockUserManager.Setup(u => u.GetRolesAsync(It.IsAny<User>()))
+                .ReturnsAsync(new List<string> { role });
+
+            var result = await _chatService.DeleteMessage("msg1", "user1");
+
+            result.Success.Should().BeTrue();
+            _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
+            _mockUnitOfWork.Verify(u => u.Messages.DeleteAsync(msgId), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("Admin")]
+        [InlineData("Mod")]
+        [InlineData("User")]
+        public async Task DeleteMessage_WhenUserAuthorAndHasPermission_ReturnOperationResultTrue(string role)
+        {
+            string userId = "user1";
+            string msgId = "msg1";
+
+            _mockUnitOfWork.Setup(u => u.Messages.GetByIdAsync(
+                It.IsAny<string>()))
+                .ReturnsAsync(new Message { UserId = userId });
+
+            _mockUserManager.Setup(u => u.GetRolesAsync(It.IsAny<User>()))
+                .ReturnsAsync(new List<string> { role });
+
+            var result = await _chatService.DeleteMessage(msgId, userId);
+
+            result.Success.Should().BeTrue();
+            _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
+            _mockUnitOfWork.Verify(u => u.Messages.DeleteAsync(msgId), Times.Once);
         }
     }
 }

@@ -131,7 +131,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
         {
             if (string.IsNullOrWhiteSpace(chatId))
-                throw new ArgumentException("Chat ID is required", nameof(chatId));
+                throw new ArgumentException("Chat ID не может быть пустым", nameof(chatId));
 
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             if (take < 1 || take > 100) throw new ArgumentOutOfRangeException(nameof(take));
