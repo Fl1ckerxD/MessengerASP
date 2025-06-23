@@ -36,7 +36,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                 throw new ArgumentNullException(nameof(request));
 
             if (string.IsNullOrWhiteSpace(userId))
-                throw new ArgumentException("User ID cannot be empty", nameof(userId));
+                throw new ArgumentException("User ID не может быть пустым", nameof(userId));
 
             try
             {
@@ -57,6 +57,12 @@ namespace CorpNetMessenger.Infrastructure.Services
                 await _unitOfWork.SaveAsync();
 
                 return message.Id;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogInformation(ex, "Пользователь {UserId} попытался отправить сообщение в чат {ChatId}",
+                   userId, request?.ChatId);
+                throw ex;
             }
             catch (Exception ex)
             {

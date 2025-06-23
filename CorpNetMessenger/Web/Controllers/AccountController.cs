@@ -4,7 +4,6 @@ using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Controllers
 {
@@ -25,33 +24,28 @@ namespace CorpNetMessenger.Web.Controllers
 
         public async Task<IActionResult> Edit()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUser = await _userManager.GetUserAsync(User) ??
+                throw new Exception("Пользователь не найден");
 
-            if (userId == null)
-                throw new Exception("Пользователь не авторизован");
-
-            var currentUser = await _userManager.GetUserAsync(User);
-            var currentUserVM = new AccountViewModel
+            return View(new AccountViewModel
             {
                 LastName = currentUser.LastName,
                 Name = currentUser.Name,
                 Patronymic = currentUser.Patronymic,
                 Email = currentUser.Email,
                 PhoneNumber = currentUser.PhoneNumber
-            };
-
-            return View(currentUserVM);
+            });
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AccountViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return NotFound("Пользователь не найден");
+            var currentUser = await _userManager.GetUserAsync(User) ??
+                throw new Exception("Пользователь не найден");
 
             try
             {

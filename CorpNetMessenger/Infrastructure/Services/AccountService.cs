@@ -3,9 +3,7 @@ using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CorpNetMessenger.Infrastructure.Services
 {
@@ -45,7 +43,7 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Login error for {UserName}", model.UserName);
+                _logger.LogError(ex, "Ошибка входа для {UserName}", model.UserName);
                 return SignInResult.Failed;
             }
         }
@@ -86,20 +84,20 @@ namespace CorpNetMessenger.Infrastructure.Services
                 if (!result.Succeeded)
                 {
                     var errors = string.Join(", ", result.Errors.Select(e => e.Code));
-                    _logger.LogWarning("Registration failed for {Username}. Errors: {Errors}",
+                    _logger.LogWarning("Регистрация не удалась для {Username}. Errors: {Errors}",
                     user.UserName, errors);
                 }
                 else
                 {
-                    _logger.LogInformation("New user registered: {Username}", user.UserName);
+                    _logger.LogInformation("Зарегистрирован новый пользователь: {Username}", user.UserName);
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Registration error for user: {Login}", model.Login);
-                return IdentityResult.Failed(new IdentityError { Description = "Internal server error" });
+                _logger.LogError(ex, "Ошибка регистрации пользователя: {Login}", model.Login);
+                return IdentityResult.Failed(new IdentityError { Description = "Внутренняя ошибка сервера" });
             }
         }
     }
