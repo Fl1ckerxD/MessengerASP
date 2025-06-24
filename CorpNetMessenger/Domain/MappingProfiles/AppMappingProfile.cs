@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using CorpNetMessenger.Application;
+using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Application.Converters;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;

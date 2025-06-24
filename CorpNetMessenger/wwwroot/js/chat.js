@@ -1,14 +1,19 @@
-﻿// создание объекта для подключения
+﻿let hasMoreMessages = true;
+let messageToDeleteId = null;
+let addedFiles = [];
+let skip = 20;
+const take = 5;
+const fileInput = document.getElementById('fileInput');
+const addFileBtn = document.getElementById('addFileBtn');
+const fileList = document.getElementById('fileList');
+
+// создание объекта для подключения
 const hubConnection = new signalR.HubConnectionBuilder()
     .withUrl("/chatHub")
     .build();
 
 // кнопка должна быть не активной пока не будет подключения к хабу
 document.getElementById("sendBtn").disabled = true;
-
-let skip = 20;
-const take = 5;
-let hasMoreMessages = true;
 
 // получение нового сообщения
 hubConnection.on("Receive", function (message) {
@@ -82,6 +87,13 @@ hubConnection.start()
         return console.error(err.toString());
     });
 
+// повторное подключение при обрыве
+hubConnection.onclose(async () => {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    await hubConnection.start();
+});
+
+// отображение ошибок
 function displayError(error) {
     const errorElem = document.createElement("span");
     errorElem.textContent = error;
@@ -95,6 +107,7 @@ function displayError(error) {
     }, 5000);
 };
 
+// загрузка старых сообщений
 function loadHistory() {
     if (!hasMoreMessages) return;
 
@@ -104,6 +117,7 @@ function loadHistory() {
     skip += take;
 };
 
+// прокрутка чата к нижнему краю элемента
 function scrollToBottom() {
     const chatroom = document.getElementById("chatroom");
     if (chatroom) {
@@ -111,10 +125,12 @@ function scrollToBottom() {
     }
 }
 
+// проверка прав
 function isAdminOrModerator() {
     return currentUserRoles.includes("Admin") || currentUserRoles.includes("Mod");
 }
 
+// создание элемента сообщения
 function createMessageDiv(message) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message");
@@ -195,31 +211,129 @@ function createMessageDiv(message) {
     return messageDiv;
 }
 
-let messageToDeleteId = null;
+// функция добавления файла в список
+function addFileToList(file) {
+    if (fileList.childElementCount >= 3) {
+        alert('Можно загрузить не более 3 файлов')
+        return;
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const fileInput = document.getElementById('fileInput');
-    const addFileBtn = document.getElementById('addFileBtn');
-    const fileList = document.getElementById('fileList');
-    const imagePreviews = document.querySelectorAll('.message-image');
-    let addedFiles = [];
+    const fileDto = {
+        id: "file-" + Date.now(),
+        file: file,
+    };
+    addedFiles.push(fileDto);
 
-    // передача изображения в модальное окно
-    imagePreviews.forEach(img => {
-        img.addEventListener('click', function () {
-            const imageUrl = this.dataset.src;
-            const fileName = imageUrl.split('/').pop(); // Получаем ID или имя файла из URL
-            const downloadLink = document.getElementById('downloadLink');
-            const modalImage = document.getElementById('modalImage');
+    const attachmentDiv = document.createElement('div');
+    attachmentDiv.classList.add("attachment-container")
+    attachmentDiv.innerHTML = `
+            <div class="file-icon">
+                <i class="bi bi-file-earmark"></i>
+            </div>
+            <div class="file-info">
+                <div class="file-name">${truncateFileName(file.name)}</div>
+                <div class="file-size">${formatBytes(file.size)}</div>
+            </div>
+            <button class="delete-attachment-btn" title="Удалить">&#10006;</button>
+        `;
 
-            modalImage.src = imageUrl;
-
-            // Установите ссылку и атрибут download
-            downloadLink.href = imageUrl;
-            downloadLink.setAttribute('download', fileName); // Браузер предложит сохранить как...
-        });
+    // удаление файла
+    attachmentDiv.querySelector('.delete-attachment-btn').addEventListener('click', () => {
+        removeFile(fileDto.id);
+        attachmentDiv.remove();
     });
 
+    fileList.appendChild(attachmentDiv);
+}
+
+// удаление файла из списка
+function removeFile(fileId) {
+    const index = addedFiles.findIndex(f => f.id === fileId);
+    if (index !== -1) {
+        addedFiles.splice(index, 1); // Удаляем 1 элемент начиная с index
+    }
+}
+
+// ограничение длины имени файла
+function truncateFileName(name, maxLength = 13) {
+    return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
+}
+
+// отправка сообщения
+async function sendMessage() {
+    const textarea = document.getElementById("message");
+    const messageText = textarea.value.trim();
+    const chatId = getChatIdFromUrl();
+
+    const messageId = textarea.dataset.editingMessageId;
+
+    if (messageId) {
+        // режим редактирования
+        if (!messageText) return;
+        await hubConnection.invoke("EditMessage", messageId, messageText, chatId);
+
+        // очистка состояние редактирования
+        delete textarea.dataset.editingMessageId;
+        textarea.value = "";
+        addedFiles = [];
+        document.getElementById("fileList").innerHTML = "";
+    }
+    else {
+        // режим нового сообщения
+        const files = addedFiles.map(item => item.file)
+
+        if (!messageText && addedFiles.length === 0) {
+            alert("Введите сообщение или добавьте файл");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("message", messageText);
+        formData.append("chatId", chatId);
+
+        // Добавляем все файлы в formData под ключом "files"
+        for (let i = 0; i < files.length; i++) {
+            formData.append("files", files[i]);
+        }
+
+        const response = await fetch("/api/messages/send", {
+            method: "POST",
+            body: formData
+        });
+
+        if (response.ok) {
+            // Очистка полей
+            textarea.value = "";
+            addedFiles = [];
+            document.getElementById("fileList").innerHTML = "";
+        }
+        else {
+            const errorMessage = await response.text();
+            displayError(errorMessage);
+        }
+    }
+}
+
+// получение Id чата
+function getChatIdFromUrl() {
+    const path = window.location.pathname;
+    const parts = path.split('/');
+    return parts[parts.length - 1];
+}
+
+// конвертирование размера файла из байтов в килобайты, мегабайты, гигабайты и т.д.
+function formatBytes(bytes) {
+    if (bytes === 0) return "0 Byte";
+
+    const suffixes = ["Byte", "KB", "MB", "GB", "TB", "PB", "EB"];
+    const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024));
+
+    let formatted = parseFloat((bytes / Math.pow(1024, i)).toFixed(1));
+
+    return `${formatted} ${suffixes[i]}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     // открыть диалог выбора файлов
     addFileBtn.addEventListener('click', () => {
         fileInput.click();
@@ -241,54 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.value = ''; // Сброс выбора
     });
 
-    // функция добавления файла в список
-    function addFileToList(file) {
-        if (fileList.childElementCount >= 3) {
-            alert('Можно загрузить не более 3 файлов')
-            return;
-        }
-
-        const fileDto = {
-            id: "file-" + Date.now(),
-            file: file,
-        };
-        addedFiles.push(fileDto);
-
-        const attachmentDiv = document.createElement('div');
-        attachmentDiv.classList.add("attachment-container")
-        attachmentDiv.innerHTML = `
-            <div class="file-icon">
-                <i class="bi bi-file-earmark"></i>
-            </div>
-            <div class="file-info">
-                <div class="file-name">${truncateFileName(file.name)}</div>
-                <div class="file-size">${formatBytes(file.size)}</div>
-            </div>
-            <button class="delete-attachment-btn" title="Удалить">&#10006;</button>
-        `;
-
-        // удаление файла
-        attachmentDiv.querySelector('.delete-attachment-btn').addEventListener('click', () => {
-            removeFile(fileDto.id);
-            attachmentDiv.remove();
-        });
-
-        fileList.appendChild(attachmentDiv);
-    }
-
-    // удаление файла из списка
-    function removeFile(fileId) {
-        const index = addedFiles.findIndex(f => f.id === fileId);
-        if (index !== -1) {
-            addedFiles.splice(index, 1); // Удаляем 1 элемент начиная с index
-        }
-    }
-
-    // ограничение длины имени файла
-    function truncateFileName(name, maxLength = 13) {
-        return name.length > maxLength ? name.substring(0, maxLength) + '...' : name;
-    }
-
     // отправление сообщение на сервер по клику
     document.getElementById("sendBtn").addEventListener("click", sendMessage);
 
@@ -299,60 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sendMessage();
         }
     });
-
-    async function sendMessage() {
-        const textarea = document.getElementById("message");
-        const messageText = textarea.value.trim();
-        const chatId = getChatIdFromUrl();
-
-        const messageId = textarea.dataset.editingMessageId;
-
-        if (messageId) {
-            // режим редактирования
-            if (!messageText) return;
-            await hubConnection.invoke("EditMessage", messageId, messageText, chatId);
-
-            // очистка состояние редактирования
-            delete textarea.dataset.editingMessageId;
-            textarea.value = "";
-            addedFiles = [];
-            document.getElementById("fileList").innerHTML = "";
-        }
-        else {
-            // режим нового сообщения
-            const files = addedFiles.map(item => item.file)
-
-            if (!messageText && addedFiles.length === 0) {
-                alert("Введите сообщение или добавьте файл");
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("message", messageText);
-            formData.append("chatId", chatId);
-
-            // Добавляем все файлы в formData под ключом "files"
-            for (let i = 0; i < files.length; i++) {
-                formData.append("files", files[i]);
-            }
-
-            const response = await fetch("/api/messages/send", {
-                method: "POST",
-                body: formData
-            });
-
-            if (response.ok) {
-                // Очистка полей
-                textarea.value = "";
-                addedFiles = [];
-                document.getElementById("fileList").innerHTML = "";
-            }
-            else {
-                const errorMessage = await response.text();
-                displayError(errorMessage);
-            }
-        }
-    }
 
     document.getElementById("chatroom").addEventListener("click", (e) => {
         // редактирование сообщения
@@ -379,6 +391,21 @@ document.addEventListener('DOMContentLoaded', () => {
             messageToDeleteId = messageId;
             const modal = new bootstrap.Modal(document.getElementById("confirmDeleteModal"));
             modal.show();
+        }
+
+        // передача изображения в модальное окно
+        if (e.target.classList.contains('message-image')) {
+            const img = e.target.closest(".message-image");
+            const imageUrl = img.dataset.src;
+            const fileName = imageUrl.split('/').pop(); // Получаем ID или имя файла из URL
+            const downloadLink = document.getElementById('downloadLink');
+            const modalImage = document.getElementById('modalImage');
+
+            modalImage.src = imageUrl;
+
+            // Установите ссылку и атрибут download
+            downloadLink.href = imageUrl;
+            downloadLink.setAttribute('download', fileName); // Браузер предложит сохранить как...
         }
     });
 
@@ -408,20 +435,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // после загрузки страницы ставим скролл на дефолтную позицию в самом низу
     window.addEventListener("load", scrollToBottom);
 });
-
-function getChatIdFromUrl() {
-    const path = window.location.pathname;
-    const parts = path.split('/');
-    return parts[parts.length - 1];
-}
-
-function formatBytes(bytes) {
-    if (bytes === 0) return "0 Byte";
-
-    const suffixes = ["Byte", "KB", "MB", "GB", "TB", "PB", "EB"];
-    const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024));
-
-    let formatted = parseFloat((bytes / Math.pow(1024, i)).toFixed(1));
-
-    return `${formatted} ${suffixes[i]}`;
-}

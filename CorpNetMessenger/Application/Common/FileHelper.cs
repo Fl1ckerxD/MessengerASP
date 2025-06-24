@@ -1,4 +1,4 @@
-﻿namespace CorpNetMessenger.Application
+﻿namespace CorpNetMessenger.Application.Common
 {
     public static class FileHelper
     {

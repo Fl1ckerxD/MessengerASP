@@ -1,4 +1,4 @@
-﻿using CorpNetMessenger.Application;
+﻿using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
