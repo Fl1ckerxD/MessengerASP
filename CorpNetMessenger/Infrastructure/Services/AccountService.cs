@@ -48,7 +48,7 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
         }
 
-        private async Task UpdateFullNameClaim(User user)
+        public async Task UpdateFullNameClaim(User user)
         {
             var existingClaims = await _userManager.GetClaimsAsync(user);
             var fullNameClaim = existingClaims.FirstOrDefault(c => c.Type == "FullName");
