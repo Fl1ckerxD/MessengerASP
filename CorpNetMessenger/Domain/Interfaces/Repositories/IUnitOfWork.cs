@@ -4,7 +4,7 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {
-        IRepository<Chat> Chats { get; }
+        IChatRepository Chats { get; }
         IRepository<Department> Departments { get; }
         IRepository<Attachment> Files { get; }
         IMessageRepository Messages { get; }

@@ -1,8 +1,10 @@
 using System.Diagnostics;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using CorpNetMessenger.Domain.Interfaces.Services;
+using System.Security.Authentication;
 
 namespace CorpNetMessenger.Web.Controllers
 {
@@ -10,19 +12,29 @@ namespace CorpNetMessenger.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        //private readonly IUnitOfWork _unitOfWork;
+        private readonly IChatService _chatService;
 
-        public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork)
+        public HomeController(ILogger<HomeController> logger, IChatService chatService)
         {
             _logger = logger;
-            //_unitOfWork = unitOfWork;
+            _chatService = chatService;
         }
 
         public async Task<IActionResult> Index()
         {
-            //var messages = await _unitOfWork.Messages.GetChatMessagesAsync();
-            //return View(messages);
-            return View();
+            try
+            {
+                string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var chat = await _chatService.GetDepartmentChatForUserAsync(userId);
+
+                return Redirect($"/messaging/chat/{chat.Id}");
+            }
+            catch (Exception ex) when (ex is AuthenticationException || ex is InvalidOperationException)
+            {
+                _logger.LogError(ex, "Ошибка перенаправления в чат");
+                return BadRequest(ex.Message);
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

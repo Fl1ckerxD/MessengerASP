@@ -8,7 +8,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
     {
         private readonly MessengerContext _context;
         private bool _disposed;
-        private IRepository<Chat> _chats;
+        private IChatRepository _chats;
         private IRepository<Department> _departments;
         private IRepository<Attachment> _files;
         private IMessageRepository _messages;
@@ -22,7 +22,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
             _context = context;
         }
 
-        public IRepository<Chat> Chats => _chats ??= new ChatRepository(_context);
+        public IChatRepository Chats => _chats ??= new ChatRepository(_context);
         public IRepository<Department> Departments => _departments ??= new DepartmentRepository(_context);
         public IRepository<Attachment> Files => _files ??= new AttachmentRepository(_context);
         public IMessageRepository Messages => _messages ??= new MessageRepository(_context);

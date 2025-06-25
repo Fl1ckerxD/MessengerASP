@@ -1,5 +1,6 @@
 ﻿using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Domain.DTOs;
+using CorpNetMessenger.Domain.Entities;
 
 namespace CorpNetMessenger.Domain.Interfaces.Services
 {
@@ -11,5 +12,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
         Task<bool> UserInChat(string chatId, string userId);
         Task<MessageDto> GetMessageAsync(string messageId);
         Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5);
+        Task<Chat> GetDepartmentChatForUserAsync(string userId);
     }
 }

@@ -39,7 +39,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
 
             var user = HttpContext.User;
-            string currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier) 
+            string currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? throw new UnauthorizedAccessException("User not authenticated"); ;
 
             bool isInChat = await _chatService.UserInChat(id, currentUserId);
@@ -54,6 +54,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             {
                 var messages = await _chatService.LoadHistoryChatAsync(id, take: 20);
                 var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(currentUserId);
+                var ChatName = (await _unitOfWork.Chats.GetByIdAsync(id)).Name;
 
                 var currentUser = contacts.FirstOrDefault(u => u.Id == currentUserId);
                 if (currentUser != null)
@@ -76,6 +77,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                     Contacts = contactVM,
                     Chat = messages.Reverse()
                 };
+
+                ViewBag.ChatName = ChatName;
 
                 return View(model);
             }

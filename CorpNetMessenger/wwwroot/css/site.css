@@ -204,6 +204,7 @@ body {
 .current-user {
     display: flex;
     align-items: center;
+    width: 100%;
     gap: 12px;
 }
 
@@ -235,9 +236,9 @@ body {
     color: black;
 }
 
-.settings-icon:hover {
-    color: #555;
-}
+    .settings-icon:hover {
+        color: #555;
+    }
 
 .search-container {
     position: relative;

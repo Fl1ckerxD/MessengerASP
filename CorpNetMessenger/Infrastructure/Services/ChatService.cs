@@ -5,6 +5,7 @@ using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Authentication;
 
 namespace CorpNetMessenger.Infrastructure.Services
 {
@@ -178,6 +179,41 @@ namespace CorpNetMessenger.Infrastructure.Services
                 _logger.LogError(ex, "Ошибка удаления сообщения {MessageId}", messageId);
                 return new OperationResult { Success = false, Error = "Внутренняя ошибка сервера" };
             }
+        }
+
+        /// <summary>
+        /// Возвращает чат отдела для указанного пользователя
+        /// </summary>
+        /// <exception cref="AuthenticationException">Когда пользователь или чат не найдены</exception>
+        /// <exception cref="InvalidOperationException">Когда у пользователя не назначен отдел</exception>
+        public async Task<Chat> GetDepartmentChatForUserAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new ArgumentException("Идентификатор пользователя не может быть пустым", nameof(userId));
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                _logger.LogWarning("Пользователь {UserId} не найден", userId);
+                throw new AuthenticationException($"Пользователь {userId} не найдент");
+            }
+
+            if (user.DepartmentId == null)
+            {
+                _logger.LogWarning("Для пользователя {UserId} не назначен отдел", userId);
+                throw new InvalidOperationException($"Пользователь {userId} не имеет назначенного отдела");
+            }
+
+            var chat = await _unitOfWork.Chats.GetByDepartmentIdAsync(user.DepartmentId.Value);
+
+            if (chat == null)
+            {
+                _logger.LogWarning("Чат для отдела {DepartmentId} не найден", user.DepartmentId.Value);
+                throw new ArgumentNullException($"Чат отдела {user.DepartmentId.Value} не найден");
+            }
+
+            return chat;
         }
     }
 }

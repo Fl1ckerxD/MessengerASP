@@ -1,10 +1,6 @@
-﻿using CorpNetMessenger.Application;
-using CorpNetMessenger.Application.Converters;
-using CorpNetMessenger.Domain.DTOs;
-using CorpNetMessenger.Domain.Entities;
+﻿using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
-using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace CorpNetMessenger.Infrastructure.Repositories
