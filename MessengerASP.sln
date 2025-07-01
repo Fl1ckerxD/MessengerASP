@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorpNetMessenger", "CorpNet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorpNetMessenger.Tests", "CorpNetMessenger.Tests\CorpNetMessenger.Tests.csproj", "{156A6A49-6B64-413F-9C0D-55CC2EF28DBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRazorPages_VSCODE", "..\TestRazorPages_VSCODE\TestRazorPages_VSCODE.csproj", "{80074D6C-9C7E-4C88-A0D6-6E460D9EFCAA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
