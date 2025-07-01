@@ -333,7 +333,26 @@ function formatBytes(bytes) {
     return `${formatted} ${suffixes[i]}`;
 }
 
+function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // поиск сотрудников
+    document.getElementById('searchInput').addEventListener('input', debounce(function () {
+        const searchTerm = document.getElementById('searchInput').value;
+
+        fetch(`/Messaging/Chat/SearchEmployees?term=${encodeURIComponent(searchTerm)}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('employeeList').innerHTML = html;
+            });
+    }));
+
     // открыть диалог выбора файлов
     addFileBtn.addEventListener('click', () => {
         fileInput.click();

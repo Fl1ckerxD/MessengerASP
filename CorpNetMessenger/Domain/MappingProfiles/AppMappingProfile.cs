@@ -3,6 +3,7 @@ using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Application.Converters;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using CorpNetMessenger.Web.ViewModels;
 
 namespace CorpNetMessenger.Domain.MappingProfiles
@@ -30,6 +31,10 @@ namespace CorpNetMessenger.Domain.MappingProfiles
                 .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
                 .ForMember(dest => dest.FileSize, opt => opt.MapFrom(src => BytesToStringConverter.Convert(src.FileLength)))
                 .ForMember(dest => dest.IsImage, opt => opt.MapFrom(src => FileHelper.IsImage(src.FileName)));
+
+            CreateMap<User, ContactViewModel>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name}"))
+            .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
         }
     }
 }

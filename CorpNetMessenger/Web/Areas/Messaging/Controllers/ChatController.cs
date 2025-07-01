@@ -1,9 +1,9 @@
-﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using System.Security.Claims;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 {
@@ -15,8 +15,11 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IChatService _chatService;
 
-        public ChatController(ILogger<ChatController> logger, IUnitOfWork unitOfWork,
-            IChatService chatService)
+        public ChatController(
+            ILogger<ChatController> logger,
+            IUnitOfWork unitOfWork,
+            IChatService chatService
+        )
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -39,14 +42,20 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
 
             var user = HttpContext.User;
-            string currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? throw new UnauthorizedAccessException("User not authenticated"); ;
+            string currentUserId =
+                user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? throw new UnauthorizedAccessException("User not authenticated");
+            ;
 
             bool isInChat = await _chatService.UserInChat(id, currentUserId);
 
             if (!isInChat)
             {
-                _logger.LogWarning("Пользователь {UserId} не состоит в чате {ChatId}", currentUserId, id);
+                _logger.LogWarning(
+                    "Пользователь {UserId} не состоит в чате {ChatId}",
+                    currentUserId,
+                    id
+                );
                 return Forbid();
             }
 
@@ -69,14 +78,10 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                 var contactVM = new ContactPanelViewModel
                 {
                     Contacts = contacts,
-                    CurrentUser = currentUser
+                    CurrentUser = currentUser,
                 };
 
-                var model = new ChatViewModel
-                {
-                    Contacts = contactVM,
-                    Chat = messages.Reverse()
-                };
+                var model = new ChatViewModel { Contacts = contactVM, Chat = messages.Reverse() };
 
                 ViewBag.ChatName = ChatName;
 
@@ -84,9 +89,21 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при загрузке чата: {ChatId}, User: {UserId}", id, currentUserId);
+                _logger.LogError(
+                    ex,
+                    "Ошибка при загрузке чата: {ChatId}, User: {UserId}",
+                    id,
+                    currentUserId
+                );
                 return RedirectToAction("Index", "Home");
             }
+        }
+
+        public async Task<IActionResult> SearchEmployees(string term)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var employees = await _chatService.SearchEmployees(term, user.DepartmentId.Value, user.Id);
+            return PartialView("_EmployeeListPartial", employees);
         }
     }
 }

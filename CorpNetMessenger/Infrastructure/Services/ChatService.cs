@@ -4,7 +4,9 @@ using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
+using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Identity.Client;
 using System.Security.Authentication;
 
 namespace CorpNetMessenger.Infrastructure.Services
@@ -214,6 +216,33 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
 
             return chat;
+        }
+
+        public async Task<IEnumerable<ContactViewModel>> SearchEmployees(string term, int departmentId, string userId)
+        {
+            List<ContactViewModel> contacts;
+            
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId);
+            }
+            else
+            {
+                var search = await _unitOfWork.Users.SearchContactsByNameAsync(term, departmentId);
+                contacts = _mapper.Map<List<ContactViewModel>>(search);
+            }
+
+            var currentUser = contacts.FirstOrDefault(u => u.Id == userId);
+            if (currentUser != null)
+            {
+                contacts.Remove(currentUser);
+            }
+            else
+            {
+                _logger.LogWarning("Текущий пользователь не найден в списке контактов");
+            }
+
+            return contacts;
         }
     }
 }

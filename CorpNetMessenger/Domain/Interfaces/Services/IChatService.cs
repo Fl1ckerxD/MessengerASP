@@ -1,6 +1,7 @@
 ﻿using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 
 namespace CorpNetMessenger.Domain.Interfaces.Services
 {
@@ -13,5 +14,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
         Task<MessageDto> GetMessageAsync(string messageId);
         Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5);
         Task<Chat> GetDepartmentChatForUserAsync(string userId);
+        Task<IEnumerable<ContactViewModel>> SearchEmployees(string term, int departmentId, string userId);
     }
 }

@@ -90,15 +90,15 @@ namespace MessengerASP
 
 
 
+            app.MapControllerRoute(
+                    name: "areas",
+                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
             app.MapAreaControllerRoute(
                     name: "Messaging",
                     areaName: "Messaging",
                     pattern: "Messaging/Chat/{id}",
-                    defaults: new { controller = "Chat", action = "Index" });
-
-            app.MapControllerRoute(
-                    name: "areas",
-                    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                    defaults: new { controller = "Chat", action = "Index" });        
 
             app.MapControllerRoute(
                     name: "default",

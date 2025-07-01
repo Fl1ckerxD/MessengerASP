@@ -13,20 +13,11 @@
     </div>
 
     <div class="search-container">
-        <input class="search-input" type="text" placeholder=" Сотрудники" />
+        <input id="searchInput" class="search-input" type="text" placeholder=" Сотрудники" />
         <i class="bi bi-search search-icon"></i>
     </div>
 </div>
 
-<div class="employee-list">
-    @foreach (var contact in Model.Contacts)
-    {
-        <div class="employee-item">
-            <img class="employee-avatar" src="@Url.Action("GetAvatar", "Account", new { userId = contact.Id })" alt="Аватар" />
-            <div class="employee-info">
-                <div class="employee-name">@contact.UserName</div>
-                <span class="employee-post">@contact.PostName</span>
-            </div>
-        </div>
-    }
+<div id="employeeList" class="employee-list">
+    @await Html.PartialAsync("_EmployeeListPartial", Model.Contacts)
 </div>
