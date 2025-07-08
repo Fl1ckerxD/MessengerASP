@@ -1,4 +1,4 @@
-﻿ @model ChatViewModel
+﻿@model ChatViewModel
 
 <div class="chat-container">
     <!-- Левая панель: Список коллег -->
@@ -9,5 +9,93 @@
     <!-- Правая панель: Чат -->
     <div class="chat-panel">
         @await Html.PartialAsync("_ChatPartial", Model.Chat)
+    </div>
+</div>
+
+<!-- Модальное окно для изображения -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body d-flex justify-content-center">
+                <img id="modalImage" class="img-fluid" src="" alt="Увеличенное изображение" />
+            </div>
+            <div class="modal-footer d-flex">
+                <a id="downloadLink" class="main-button" href="#" download>
+                    Скачать
+                    <i class="bi bi-download"></i>
+                </a>
+                <button type="button" class="main-button" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Подтвердите удаление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                Вы действительно хотите удалить это сообщение? Это действие нельзя отменить.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для доп. информации о сотруднике -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered w-25">
+        <div class="modal-content employee-info-container">
+            <div>
+                <h3>Информация</h3>
+                <button type="button" class="close-button" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <img id="contactModalImage" class="user-avatar-large super-large" src="" alt="Аватар" />
+                <div id="employeeName" class="user-name"></div>
+            </div>
+            <div class="">
+                <table class="data-table">
+                    <tr>
+                        <td class="icon-cell">
+                            <i class="bi bi-building"></i>
+                        </td>
+                        <td class="title-cell">Отдел</td>
+                        <td class="value-cell" id="departmentName"></td>
+                    </tr>
+                    <tr>
+                        <td class="icon-cell">
+                            <i class="bi bi-person-vcard"></i>
+                        </td>
+                        <td class="title-cell">Должность</td>
+                        <td class="value-cell" id="postName"></td>
+                    </tr>
+                    <tr>
+                        <td class="icon-cell">
+                            <i class="bi bi-envelope"></i>
+                        </td>
+                        <td class="title-cell">Почта</td>
+                        <td class="value-cell" id="email"></td>
+                    </tr>
+                    <tr>
+                        <td class="icon-cell">
+                            <i class="bi bi-phone"></i>
+                        </td>
+                        <td class="title-cell">Телефон</td>
+                        <td class="value-cell" id="phoneNumber"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
 </div>

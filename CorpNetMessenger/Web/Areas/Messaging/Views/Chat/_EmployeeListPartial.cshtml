@@ -2,7 +2,8 @@
 
 @foreach (var contact in Model)
 {
-    <div class="employee-item">
+    <div class="employee-item" data-employee-id="@contact.Id" data-bs-toggle="modal" data-bs-target="#contactModal"
+        data-src="@Url.Action("GetAvatar", "Account", new { userId = contact.Id })">
         <img class="employee-avatar" src="@Url.Action("GetAvatar", "Account", new { userId = contact.Id })" alt="Аватар" />
         <div class="employee-info">
             <div class="employee-name">@contact.UserName</div>

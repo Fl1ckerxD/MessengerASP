@@ -35,6 +35,10 @@ namespace CorpNetMessenger.Domain.MappingProfiles
             CreateMap<User, ContactViewModel>()
             .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name}"))
             .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
+
+            CreateMap<User, EmployeeDto>()
+            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Title))
+            .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
         }
     }
 }

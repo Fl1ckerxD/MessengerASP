@@ -38,12 +38,20 @@ namespace CorpNetMessenger.Infrastructure.Repositories
             return await GetAllDepartmentContactsAsync(departmentId.Value);
         }
 
+        public async Task<User> GetByIdWithDetailsAsync(string id)
+        {
+            return await _context.Users
+                .Include(u => u.Department)
+                .Include(u => u.Post)
+                .FirstOrDefaultAsync(u => u.Id == id);
+        }
+
         public async Task<List<User>> SearchContactsByNameAsync(string name, int departmentId)
         {
             return await _context.Users
-            .Include(u => u.Post)
-            .Where(u => (u.Name.Contains(name) || u.LastName.Contains(name) || u.Patronymic.Contains(name) || u.Post.Title.Contains(name)) && u.DepartmentId == departmentId)
-            .ToListAsync();
+                .Include(u => u.Post)
+                .Where(u => (u.Name.Contains(name) || u.LastName.Contains(name) || u.Patronymic.Contains(name) || u.Post.Title.Contains(name)) && u.DepartmentId == departmentId)
+                .ToListAsync();
         }
     }
 }

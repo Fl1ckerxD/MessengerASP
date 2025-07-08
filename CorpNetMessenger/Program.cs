@@ -53,15 +53,22 @@ namespace MessengerASP
                 options.ReturnUrlParameter = "243523";
             });
 
+            builder.Services.AddResponseCompression(opt =>
+            {
+                opt.EnableForHttps = true;
+            });
+
             builder.Services.AddControllersWithViews();
             builder.Services.AddAutoMapper(typeof(AppMappingProfile));
             builder.Services.AddSignalR();
+            builder.Services.AddMemoryCache();
 
             // Add Scoped services to the container.
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IFileService, FileService>();
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
             var app = builder.Build();
 
@@ -79,16 +86,17 @@ namespace MessengerASP
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseResponseCompression();
             app.MapStaticAssets();
+            //app.UseStaticFiles(new StaticFileOptions()
+            //{
+            //    OnPrepareResponse = ctx =>
+            //    {
+            //       ctx.Context.Response.Headers.Add("Cache-Control", "public,max-age=600");
+            //    }
+            //});
 
             app.MapHub<ChatHub>("/chatHub");
-
-            //app.MapControllerRoute(
-            //    name: "chat",
-            //    pattern: "chat/{id}",
-            //    defaults: new { controller = "Chat", action = "Index" });
-
-
 
             app.MapControllerRoute(
                     name: "areas",

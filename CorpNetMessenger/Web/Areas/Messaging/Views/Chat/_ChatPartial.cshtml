@@ -97,39 +97,3 @@
         .Select(c => c.Value));
 </script>
 
-<!-- Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body d-flex justify-content-center">
-                <img id="modalImage" class="img-fluid" src="" alt="Увеличенное изображение" />
-            </div>
-            <div class="modal-footer d-flex">
-                <a id="downloadLink" class="main-button" href="#" download>
-                    Скачать
-                    <i class="bi bi-download"></i>
-                </a>
-                <button type="button" class="main-button" data-bs-dismiss="modal">Закрыть</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Модальное окно подтверждения удаления -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Подтвердите удаление</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-            </div>
-            <div class="modal-body">
-                Вы действительно хотите удалить это сообщение? Это действие нельзя отменить.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
-            </div>
-        </div>
-    </div>
-</div>

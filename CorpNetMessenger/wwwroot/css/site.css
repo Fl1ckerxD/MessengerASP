@@ -14,7 +14,11 @@
     }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
@@ -36,12 +40,14 @@ body {
     font-family: Arial, sans-serif;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);
     text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
 
@@ -54,7 +60,8 @@ body {
     height: 500px;
 }
 
-    .login-form h1, h2 {
+    .login-form h1,
+    h2 {
         font-size: 50px;
         text-align: center;
         margin-bottom: 20px;
@@ -66,7 +73,9 @@ body {
         margin-left: 15px;
     }
 
-    .login-form input[type="text"], input[type="password"], button[type="submit"] {
+    .login-form input[type="text"],
+    input[type="password"],
+    button[type="submit"] {
         width: 100%;
     }
 
@@ -86,7 +95,8 @@ body {
         margin-left: 15px;
     }
 
-.main-input-text, .search-input {
+.main-input-text,
+.search-input {
     padding: 10px;
     background-color: var(--muted);
     border: none;
@@ -94,7 +104,8 @@ body {
     font-size: 20px;
 }
 
-.main-button, .logout-button {
+.main-button,
+.logout-button {
     padding: 8px;
     margin-top: 10px;
     background-color: var(--primary);
@@ -126,7 +137,8 @@ body {
     box-shadow: 0 0 15px black;
 }
 
-    .registration-form h1, h2 {
+    .registration-form h1,
+    h2 {
         font-size: 50px;
         text-align: center;
         margin-bottom: 20px;
@@ -138,7 +150,9 @@ body {
         margin-left: 15px;
     }
 
-    .registration-form input, select, button[type="submit"] {
+    .registration-form input,
+    select,
+    button[type="submit"] {
         width: 100%;
     }
 
@@ -214,6 +228,11 @@ body {
     border-radius: 50%;
     object-fit: cover;
     object-position: 50%;
+}
+
+.super-large {
+    width: 100px;
+    height: 100px;
 }
 
 .user-info {
@@ -565,7 +584,8 @@ body {
     max-width: 75%;
 }
 
-    .profile-container h1, h2 {
+    .profile-container h1,
+    h2 {
         font-size: 30px;
         position: absolute;
         left: 50%;
@@ -616,3 +636,57 @@ body {
     .logout-button:hover {
         background-color: darkred
     }
+
+.employee-info-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    background-color: white;
+    border-radius: 10px;
+    gap: 20px;
+    border: none;
+}
+
+.close-button {
+    font-size: 25px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: black;
+}
+
+    .close-button:hover {
+        color: gray;
+    }
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .data-table tr {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .data-table td {
+        padding: 8px 8px;
+    }
+
+.icon-cell {
+    width: 20px;
+    text-align: center;
+    font-size: 20px;
+}
+
+.title-cell {
+    font-weight: bold;
+}
+
+.value-cell {
+    text-align: right;
+    color: #666;
+    width: 30%;
+}

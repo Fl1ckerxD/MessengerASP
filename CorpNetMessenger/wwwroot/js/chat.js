@@ -341,6 +341,27 @@ function debounce(func, timeout = 300) {
     };
 }
 
+// отображение информации о сотруднике
+document.getElementById("employeeList").addEventListener("click", async (e) => {
+    const employee = e.target.closest(".employee-item")
+    if (employee) {
+        const id = employee.dataset.employeeId;
+        const imageUrl = employee.dataset.src;
+        const contactModalImage = document.getElementById("contactModalImage");
+
+        const response = await fetch(`/Messaging/Employees/GetEmployeeInfo?id=${id}`);
+        if (!response.ok) console.log(response.statusText);
+        
+        const data = await response.json();
+        contactModalImage.src = imageUrl;
+        document.getElementById("employeeName").textContent = `${data.lastName} ${data.name} ${data.patronymic}`;
+        document.getElementById("departmentName").textContent = data.departmentName;
+        document.getElementById("postName").textContent = data.postName;
+        document.getElementById("email").textContent = data.email;
+        document.getElementById("phoneNumber").textContent = data.phoneNumber;
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     // поиск сотрудников
     document.getElementById('searchInput').addEventListener('input', debounce(function () {

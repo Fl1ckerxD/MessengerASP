@@ -14,16 +14,19 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly ILogger<ChatController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IChatService _chatService;
+        private readonly IEmployeeService _employeeService;
 
         public ChatController(
             ILogger<ChatController> logger,
             IUnitOfWork unitOfWork,
-            IChatService chatService
+            IChatService chatService,
+            IEmployeeService employeeService
         )
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _chatService = chatService;
+            _employeeService = employeeService;
         }
 
         public async Task<IActionResult> Index(string id)
@@ -102,7 +105,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         public async Task<IActionResult> SearchEmployees(string term)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var employees = await _chatService.SearchEmployees(term, user.DepartmentId.Value, user.Id);
+            var employees = await _employeeService.SearchEmployees(term, user.DepartmentId.Value, user.Id);
             return PartialView("_EmployeeListPartial", employees);
         }
     }
