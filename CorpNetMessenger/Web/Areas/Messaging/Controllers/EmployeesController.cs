@@ -21,6 +21,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         }
 
         [HttpGet]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetEmployeeInfo(string id)
         {
             try

@@ -4,6 +4,7 @@ using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace CorpNetMessenger.Web.Controllers
 {
@@ -12,17 +13,21 @@ namespace CorpNetMessenger.Web.Controllers
         private readonly IAccountService _accountService;
         private readonly ILogger<AuthController> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMemoryCache _cache;
 
         public AuthController(IAccountService accountService, ILogger<AuthController> logger,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork, IMemoryCache cache)
         {
             _accountService = accountService;
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _cache = cache;
         }
 
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public IActionResult Login() => View();
 
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> Register()
         {
             var model = new RegisterViewModel();
@@ -94,8 +99,15 @@ namespace CorpNetMessenger.Web.Controllers
 
         private async Task LoadSelectLists()
         {
-            var departments = await _unitOfWork.Departments.GetAllAsync();
-            var posts = await _unitOfWork.Posts.GetAllAsync();
+            var departments = await _cache.GetOrCreateAsync("departments", async entry => {
+                entry.AbsoluteExpiration = DateTime.Now.AddHours(6);
+                return await _unitOfWork.Departments.GetAllAsync();
+            });
+
+            var posts = await _cache.GetOrCreateAsync("posts", async entry => {
+                entry.AbsoluteExpiration = DateTime.Now.AddHours(6);
+                return await _unitOfWork.Posts.GetAllAsync();
+            });
 
             ViewBag.Departments = departments.Select(d => new SelectListItem
             {

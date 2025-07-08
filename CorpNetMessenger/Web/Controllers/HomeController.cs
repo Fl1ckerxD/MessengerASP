@@ -32,7 +32,7 @@ namespace CorpNetMessenger.Web.Controllers
             }
             catch (Exception ex) when (ex is AuthenticationException || ex is InvalidOperationException)
             {
-                _logger.LogError(ex, "Ошибка перенаправления в чат");
+                _logger.LogError(ex, "РћС€РёР±РєР° РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ РІ С‡Р°С‚");
                 return BadRequest(ex.Message);
             }
         }

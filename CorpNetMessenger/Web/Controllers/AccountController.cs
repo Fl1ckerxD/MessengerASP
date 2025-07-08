@@ -137,6 +137,7 @@ namespace CorpNetMessenger.Web.Controllers
         }
 
         [HttpGet("Avatar/{userId}")]
+        [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetAvatar(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);

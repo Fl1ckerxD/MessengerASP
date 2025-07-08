@@ -6,6 +6,7 @@ using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Identity.Client;
 using System.Security.Authentication;
 
@@ -17,13 +18,15 @@ namespace CorpNetMessenger.Infrastructure.Services
         private readonly ILogger<ChatService> _logger;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
+        private readonly IMemoryCache _cache;
         public ChatService(IUnitOfWork unitOfWork, ILogger<ChatService> logger,
-            IMapper mapper, UserManager<User> userManager)
+            IMapper mapper, UserManager<User> userManager, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
+            _cache = cache;
         }
 
         /// <summary>

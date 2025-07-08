@@ -288,9 +288,6 @@ body {
     background-color: #ffffff;
 }
 
-.employee-list {
-}
-
 .employee-item {
     display: flex;
     align-items: center;

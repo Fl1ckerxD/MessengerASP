@@ -88,13 +88,13 @@ namespace MessengerASP
 
             app.UseResponseCompression();
             app.MapStaticAssets();
-            //app.UseStaticFiles(new StaticFileOptions()
-            //{
-            //    OnPrepareResponse = ctx =>
-            //    {
-            //       ctx.Context.Response.Headers.Add("Cache-Control", "public,max-age=600");
-            //    }
-            //});
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+               OnPrepareResponse = ctx =>
+               {
+                  ctx.Context.Response.Headers.Add("Cache-Control", "public,max-age=600");
+               }
+            });
 
             app.MapHub<ChatHub>("/chatHub");
 
