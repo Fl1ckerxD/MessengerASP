@@ -28,7 +28,7 @@ html {
     font-size: 14px;
 }
 
-body {
+.body-container {
     margin: 0;
     padding: 0;
     display: flex;

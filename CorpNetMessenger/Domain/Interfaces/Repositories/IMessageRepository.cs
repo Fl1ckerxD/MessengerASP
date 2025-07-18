@@ -1,6 +1,4 @@
-﻿using CorpNetMessenger.Domain.DTOs;
-using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
+﻿using CorpNetMessenger.Domain.Entities;
 
 namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {

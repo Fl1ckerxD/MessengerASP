@@ -134,6 +134,13 @@ namespace CorpNetMessenger.Infrastructure.Services
             return messageDto;
         }
 
+        /// <summary>
+        /// Загружает историю сообщений чата с пагинацией
+        /// </summary>
+        /// <param name="chatId">Идентификатор чата</param>
+        /// <param name="skip">Количество пропускаемых сообщений</param>
+        /// <param name="take">Количество загружаемых сообщений (1-100)</param>
+        /// <returns>Коллекцию сообщений в формате DTO</returns>
         public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
         {
             if (string.IsNullOrWhiteSpace(chatId))
@@ -149,15 +156,22 @@ namespace CorpNetMessenger.Infrastructure.Services
             return _mapper.Map<List<MessageDto>>(messages);
         }
 
+        /// <summary>
+        /// Удаляет сообщение с проверкой прав пользователя
+        /// </summary>
+        /// <param name="messageId">Идентификатор сообщения</param>
+        /// <param name="userId">Идентификатор пользователя, инициирующего удаление</param>
+        /// <returns>Результат операции</returns>
         public async Task<OperationResult> DeleteMessage(string messageId, string userId)
         {
             try
             {
+                // Поиск сообщения
                 var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
                 if (message == null)
                     return new OperationResult { Success = false, Error = "Сообщение не найдено" };
 
-                // Проверяем, является ли пользователь автором
+                // Проверка прав: автор может удалить свое сообщение
                 if (message.UserId == userId)
                 {
                     await _unitOfWork.Messages.DeleteAsync(messageId);
@@ -166,7 +180,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                     return new OperationResult { Success = true };
                 }
 
-                // Проверяем роли
+                // Проверка прав: админ или модератор может удалить любое сообщение
                 var userRoles = await _userManager.GetRolesAsync(new User { Id = userId });
                 var hasPermission = userRoles.Any(r => r == "Admin" || r == "Mod");
 
@@ -219,6 +233,70 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
 
             return chat;
+        }
+
+        /// <summary>
+        /// Добавляет пользователя в чат по идентификаторам
+        /// </summary>
+        /// <param name="userId">Идентификатор пользователя</param>
+        /// <param name="chatId">Идентификатор чата</param>
+        public async Task AddUserToChat(string userId, string chatId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                throw new ArgumentNullException(nameof(userId), "User ID не может быть пустым");
+            if (string.IsNullOrEmpty(chatId))
+                throw new ArgumentNullException(nameof(chatId), "Chat ID не может быть пустым");
+
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            await AddUserToChat(user, chatId);
+        }
+
+        /// <summary>
+        /// Добавляет пользователя в чат
+        /// </summary>
+        /// <param name="user">Объект пользователя</param>
+        /// <param name="chat">Объект чата</param>
+        public async Task AddUserToChat(User user, Chat chat)
+        {
+            ArgumentNullException.ThrowIfNull(chat);
+            await AddUserToChat(user, chat.Id);
+        }
+
+        /// <summary>
+        /// Основной метод добавления пользователя в чат
+        /// </summary>
+        /// <param name="user">Объект пользователя</param>
+        /// <param name="chatId">Идентификатор чата</param>
+        public async Task AddUserToChat(User user, string chatId)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+            if (string.IsNullOrEmpty(chatId))
+                throw new ArgumentNullException(nameof(chatId), "Chat ID не может быть пустым");
+
+            // Проверка существования чата
+            var chatExists = await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId);
+            if (!chatExists)
+                throw new InvalidOperationException($"Чата с ID {chatId} не существует");
+
+            // Проверка, что пользователь еще не в чате
+            var isUserInChat = await UserInChat(chatId, user.Id);
+            if (isUserInChat)
+                throw new InvalidOperationException("Пользователь уже в этом чате");
+
+            ChatUser chatUser = new() { ChatId = chatId, UserId = user.Id };
+            user.Chats.Add(chatUser);
+            await _unitOfWork.SaveAsync();
+        }
+
+        /// <summary>
+        /// Добавляет пользователя в чат его отдела
+        /// </summary>
+        /// <param name="user">Объект пользователя</param>
+        public async Task AddUserToDepartmentChat(User user)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+            var chat = await _unitOfWork.Chats.GetByDepartmentIdAsync(user.DepartmentId.Value);
+            await AddUserToChat(user, chat);
         }
     }
 }

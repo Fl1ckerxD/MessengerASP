@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CorpNetMessenger.Application.Configs;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
 namespace CorpNetMessenger.Domain.Entities
@@ -24,9 +25,10 @@ namespace CorpNetMessenger.Domain.Entities
 
         public byte[]? Image { get; set; }
         public string? ImageContentType { get; set; }
-        public int? StatusId { get; set; }
+        public int? StatusId { get; set; } = StatusTypes.Pending;
         public int? PostId { get; set; }
         public int? DepartmentId { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public virtual Department? Department { get; set; }
         public virtual Post? Post { get; set; }

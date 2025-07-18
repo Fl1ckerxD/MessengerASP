@@ -38,6 +38,15 @@ namespace CorpNetMessenger.Infrastructure.Repositories
             return await GetAllDepartmentContactsAsync(departmentId.Value);
         }
 
+        public async Task<IEnumerable<User>> GetAllNewUsersAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Post)
+                .Include(u => u.Department)
+                .Where(u => u.StatusId == 1)
+                .ToListAsync();
+        }
+
         public async Task<User> GetByIdWithDetailsAsync(string id)
         {
             return await _context.Users

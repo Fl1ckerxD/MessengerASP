@@ -5,6 +5,7 @@ using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Linq.Expressions;
@@ -34,7 +35,8 @@ namespace CorpNetMessenger.Tests.Services
                 _mockUnitOfWork.Object,
                 _mockLogger.Object,
                 _mockMapper.Object,
-                _mockUserManager.Object);
+                _mockUserManager.Object,
+                Mock.Of<IMemoryCache>());
 
             _mockUnitOfWork.Setup(u => u.ChatUsers.GetByPredicateAsync(
                 It.IsAny<Expression<Func<ChatUser, bool>>>()))

@@ -23,6 +23,11 @@ namespace CorpNetMessenger.Infrastructure.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// Аутентификация пользователя
+        /// </summary>
+        /// <param name="model">Модель с данными для входа</param>
+        /// <returns>Результат попытки входа</returns>
         public async Task<SignInResult> Login(LoginViewModel model)
         {
             try
@@ -33,6 +38,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                     model.RememberMe,
                     lockoutOnFailure: false);
 
+                // Если вход успешен, обновляем claim с полным именем
                 if (result.Succeeded)
                 {
                     var user = await _userManager.FindByNameAsync(model.UserName);
@@ -48,6 +54,10 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
         }
 
+        /// <summary>
+        /// Обновляет claim с полным именем пользователя
+        /// </summary>
+        /// <param name="user">Пользователь</param>
         public async Task UpdateFullNameClaim(User user)
         {
             var existingClaims = await _userManager.GetClaimsAsync(user);
@@ -55,10 +65,12 @@ namespace CorpNetMessenger.Infrastructure.Services
 
             var currentFullName = $"{user.LastName} {user.Name}";
 
+            // Если claim не существует - добавляем
             if (fullNameClaim == null)
             {
                 await _userManager.AddClaimAsync(user, new Claim("FullName", currentFullName));
             }
+            // Если существует, но значение изменилось - обновляем
             else if (fullNameClaim.Value != currentFullName)
             {
                 await _userManager.ReplaceClaimAsync(user, fullNameClaim,
@@ -66,11 +78,19 @@ namespace CorpNetMessenger.Infrastructure.Services
             }
         }
 
+        /// <summary>
+        /// Выход пользователя из системы
+        /// </summary>
         public async Task Logout()
         {
             await _signInManager.SignOutAsync();
         }
 
+        /// <summary>
+        /// Регистрация нового пользователя
+        /// </summary>
+        /// <param name="model">Модель с данными для регистрации</param>
+        /// <returns>Результат регистрации</returns>
         public async Task<IdentityResult> Register(RegisterViewModel model)
         {
             try

@@ -69,6 +69,7 @@ namespace MessengerASP
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+            builder.Services.AddScoped<IRequestService, RequestService>();
 
             var app = builder.Build();
 

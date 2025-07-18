@@ -28,6 +28,13 @@ namespace CorpNetMessenger.Infrastructure.Services
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Получает подробную информацию о сотруднике по его идентификатору
+        /// </summary>
+        /// <param name="id">Идентификатор сотрудника</param>
+        /// <returns>DTO с информацией о сотруднике</returns>
+        /// <exception cref="ArgumentNullException">Если id пустой или null</exception>
+        /// <exception cref="Exception">Если сотрудник не найден</exception>
         public async Task<EmployeeDto> GetEmployeeInfo(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -41,6 +48,13 @@ namespace CorpNetMessenger.Infrastructure.Services
             return employeeDto;
         }
 
+        /// <summary>
+        /// Поиск сотрудников по имени в рамках отдела с исключением текущего пользователя
+        /// </summary>
+        /// <param name="term">Строка поиска (ФИО, Должность сотрудника)</param>
+        /// <param name="departmentId">Идентификатор отдела</param>
+        /// <param name="userId">Идентификатор текущего пользователя (будет исключен из результатов)</param>
+        /// <returns>Список контактов сотрудников</returns>
         public async Task<IEnumerable<ContactViewModel>> SearchEmployees(
             string term,
             int departmentId,

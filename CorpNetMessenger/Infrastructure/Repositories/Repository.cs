@@ -1,8 +1,6 @@
-﻿using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Linq.Expressions;
 
 namespace CorpNetMessenger.Infrastructure.Repositories

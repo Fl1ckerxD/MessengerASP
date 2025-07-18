@@ -1,5 +1,4 @@
-﻿using CorpNetMessenger.Domain.Entities;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {

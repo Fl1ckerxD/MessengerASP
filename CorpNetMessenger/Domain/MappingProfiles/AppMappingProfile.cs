@@ -3,6 +3,7 @@ using CorpNetMessenger.Application.Common;
 using CorpNetMessenger.Application.Converters;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Web.Areas.Admin.ViewModels;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using CorpNetMessenger.Web.ViewModels;
 
@@ -33,12 +34,17 @@ namespace CorpNetMessenger.Domain.MappingProfiles
                 .ForMember(dest => dest.IsImage, opt => opt.MapFrom(src => FileHelper.IsImage(src.FileName)));
 
             CreateMap<User, ContactViewModel>()
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name}"))
-            .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name}"))
+                .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
 
             CreateMap<User, EmployeeDto>()
-            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Title))
-            .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Title))
+                .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
+
+            CreateMap<User, RequestViewModel>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name} {src.Patronymic}"))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Title))
+                .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
         }
     }
 }
