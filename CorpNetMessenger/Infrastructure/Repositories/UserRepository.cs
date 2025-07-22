@@ -1,4 +1,5 @@
-﻿using CorpNetMessenger.Domain.Entities;
+﻿using CorpNetMessenger.Application.Configs;
+using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Infrastructure.Data;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
@@ -14,7 +15,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         public async Task<List<ContactViewModel>> GetAllDepartmentContactsAsync(int id)
         {
             return await _context
-                .Users.Where(u => u.DepartmentId == id)
+                .Users.Where(u => u.DepartmentId == id && u.StatusId == StatusTypes.Active)
                 .Include(u => u.Post)
                 .Select(u => new ContactViewModel
                 {
@@ -44,6 +45,15 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .Include(u => u.Post)
                 .Include(u => u.Department)
                 .Where(u => u.StatusId == 1)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetAllUserWithDetailsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Post)
+                .Include(u => u.Department)
+                .Include(u => u.Status)
                 .ToListAsync();
         }
 

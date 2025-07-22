@@ -10,5 +10,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
         Task<List<User>> SearchContactsByNameAsync(string name, int departmentId);
         Task<User> GetByIdWithDetailsAsync(string id);
         Task<IEnumerable<User>> GetAllNewUsersAsync();
+        Task<IEnumerable<User>> GetAllUserWithDetailsAsync();
     }
 }

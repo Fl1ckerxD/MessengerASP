@@ -21,8 +21,8 @@ namespace CorpNetMessenger.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> List()
         {
-            var users = await _unitOfWork.Users.GetAllAsync();
-            return View(users);
+            var users = await _unitOfWork.Users.GetAllUserWithDetailsAsync();
+            return View(_mapper.Map<IEnumerable<UsersTableViewModel>>(users));
         }
 
         public async Task<IActionResult> Requests()

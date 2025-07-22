@@ -71,8 +71,14 @@
 ### Увеличенное изображение 
 <img src="assets/screenshots/Enlarged_image.png" width="500">
 
+### Информация о сотрудниках
+<img src="assets/screenshots/Employee_info.png" width="500">
+
 ### Редактирование профиля
 <img src="assets/screenshots/Profile-editer.png" width="500">
+
+### Запросы на регистрацию (Админ-панель)
+<img src="assets/screenshots/Requests.png" width="500">
 
 ---
 

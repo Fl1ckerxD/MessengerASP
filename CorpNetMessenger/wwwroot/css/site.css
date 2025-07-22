@@ -572,6 +572,10 @@ html {
     }
 }
 
+.modal-width {
+    width: 500px;
+}
+
 .profile-container {
     justify-self: center;
     background-color: white;

@@ -51,6 +51,12 @@ namespace CorpNetMessenger.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            else if (result.IsNotAllowed)
+            {
+                ModelState.AddModelError(string.Empty, "Вход в систему невозможен.");
+                return View(model);
+            }
+
             _logger.LogWarning("Неудачный вход: {UserName}", model.UserName);
             ModelState.AddModelError(string.Empty, "Неверный логин или пароль.");
             return View(model);

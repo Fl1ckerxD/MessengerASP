@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using CorpNetMessenger.Application.Configs;
 using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -32,6 +34,11 @@ namespace CorpNetMessenger.Infrastructure.Services
         {
             try
             {
+                var user = await _userManager.FindByNameAsync(model.UserName);
+
+                if (user.StatusId != StatusTypes.Active)
+                    return SignInResult.NotAllowed;
+
                 var result = await _signInManager.PasswordSignInAsync(
                     model.UserName,
                     model.Password,
@@ -41,7 +48,6 @@ namespace CorpNetMessenger.Infrastructure.Services
                 // Если вход успешен, обновляем claim с полным именем
                 if (result.Succeeded)
                 {
-                    var user = await _userManager.FindByNameAsync(model.UserName);
                     await UpdateFullNameClaim(user);
                 }
 

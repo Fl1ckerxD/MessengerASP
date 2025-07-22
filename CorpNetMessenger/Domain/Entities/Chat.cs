@@ -12,7 +12,7 @@ namespace CorpNetMessenger.Domain.Entities
 
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        [MaxLength(50)]
+        [MaxLength(150)]
         public string? Name { get; set; }
         public int? DepartmentId { get; set; }
 

@@ -18,18 +18,13 @@ namespace CorpNetMessenger.Domain.MappingProfiles
 
             CreateMap<Message, MessageDto>()
                .ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Content))
-               .ForMember(dest => dest.SentAt, opt => opt.MapFrom(src => src.SentAt.ToString("dd.MM.yyyy HH:mm:ss")))
-               .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-               .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
-               .ForMember(dest => dest.Attachments, opt => opt.MapFrom(src => src.Attachments));
+               .ForMember(dest => dest.SentAt, opt => opt.MapFrom(src => src.SentAt.ToString("dd.MM.yyyy HH:mm:ss")));
 
             CreateMap<User, UserDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name}"));
 
             CreateMap<Attachment, AttachmentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
                 .ForMember(dest => dest.FileSize, opt => opt.MapFrom(src => BytesToStringConverter.Convert(src.FileLength)))
                 .ForMember(dest => dest.IsImage, opt => opt.MapFrom(src => FileHelper.IsImage(src.FileName)));
 
@@ -45,6 +40,12 @@ namespace CorpNetMessenger.Domain.MappingProfiles
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name} {src.Patronymic}"))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Title))
                 .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title));
+
+            CreateMap<User, UsersTableViewModel>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name} {src.Patronymic}"))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Title))
+                .ForMember(dest => dest.PostName, opt => opt.MapFrom(src => src.Post.Title))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Title));
         }
     }
 }

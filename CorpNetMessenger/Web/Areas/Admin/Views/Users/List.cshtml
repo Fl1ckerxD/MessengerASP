@@ -1,14 +1,56 @@
-﻿@using CorpNetMessenger.Domain.Entities
-@model IEnumerable<User>
+﻿@model IEnumerable<UsersTableViewModel>
 
 @{
-    ViewData["Title"] = "Пользователи";
+    ViewData["Title"] = "Все Пользователи";
 }
 
-<h2>Панель администратора - Пользователи</h2>
-<ul>
-    @foreach (var user in Model)
-    {
-        <li>@user.Name @user.LastName</li>
-    }
-</ul>
+<div class="container">
+    <h1>Все пользователи</h1>
+
+    <div class="filter-section">
+        <input type="text" id="search" class="main-input-text" placeholder="Поиск по ФИО или должности...">
+        <select id="department-filter" class="main-input-text">
+            <option value="">Все отделы</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Бухгалтерия">Бухгалтерия</option>
+            <option value="Маркетинг">Маркетинг</option>
+        </select>
+        <input type="date" id="date-filter" class="main-input-text">
+    </div>
+
+    <table id="requests-table">
+        <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Отдел</th>
+                <th>Должность</th>
+                <th>Дата регистрации</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr data-id="@user.Id">
+                    <td>@user.FullName</td>
+                    <td>@user.DepartmentName</td>
+                    <td>@user.PostName</td>
+                    <td>@user.CreatedAt</td>
+                    <td>@user.Status</td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <button disabled>←</button>
+        <button class="active">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>→</button>
+    </div>
+    @Html.AntiForgeryToken()
+</div>

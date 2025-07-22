@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CorpNetMessenger.Application.Configs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.ViewModels;
@@ -47,7 +48,7 @@ namespace CorpNetMessenger.Tests.Services
                 RememberMe = false
             };
 
-            var user = new User { UserName = "testUser", Name = "John", LastName = "Doe" };
+            var user = new User { UserName = "testUser", Name = "John", LastName = "Doe", StatusId = StatusTypes.Active };
 
             _signInManagerMock.Setup(x => x.PasswordSignInAsync(
                 model.UserName, model.Password, model.RememberMe, false))
@@ -84,7 +85,28 @@ namespace CorpNetMessenger.Tests.Services
             var result = await _accountService.Login(model);
 
             Assert.Equal(SignInResult.Failed, result);
-            _userManagerMock.Verify(x => x.FindByNameAsync(It.IsAny<string>()), Times.Never);
+            _userManagerMock.Verify(x => x.AddClaimAsync(It.IsAny<User>(), It.IsAny<Claim>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Login_NotAllowed_UserStatusIsPending()
+        {
+            var model = new LoginViewModel
+            {
+                UserName = "testUser",
+                Password = "Password",
+                RememberMe = false
+            };
+
+            var user = new User { StatusId = StatusTypes.Pending };
+
+            _userManagerMock.Setup(x => x.FindByNameAsync(model.UserName))
+                .ReturnsAsync(user);
+
+            var result = await _accountService.Login(model);
+
+            Assert.Equal(SignInResult.NotAllowed, result);
+            _signInManagerMock.Verify(x => x.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false), Times.Never);
         }
 
         [Fact]
