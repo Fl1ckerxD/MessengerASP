@@ -12,7 +12,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         private IRepository<Department> _departments;
         private IRepository<Attachment> _files;
         private IMessageRepository _messages;
-        private IRepository<Post> _posts;
+        private IPostRepository _posts;
         private IRepository<Status> _statuses;
         private IUserRepository _users;
         private IChatUserRepository _chatUsers;
@@ -26,7 +26,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         public IRepository<Department> Departments => _departments ??= new DepartmentRepository(_context);
         public IRepository<Attachment> Files => _files ??= new AttachmentRepository(_context);
         public IMessageRepository Messages => _messages ??= new MessageRepository(_context);
-        public IRepository<Post> Posts => _posts ??= new PostRepository(_context);
+        public IPostRepository Posts => _posts ??= new PostRepository(_context);
         public IRepository<Status> Statuses => _statuses ??= new StatusRepository(_context);
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public IChatUserRepository ChatUsers => _chatUsers ??= new ChatUserRepository(_context);

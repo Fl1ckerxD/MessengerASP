@@ -52,7 +52,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasIndex("MessageId");
 
-                    b.ToTable("Attachments");
+                    b.ToTable("Attachments", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.Chat", b =>
@@ -71,7 +71,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasIndex("DepartmentId");
 
-                    b.ToTable("Chats");
+                    b.ToTable("Chats", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.ChatUser", b =>
@@ -92,7 +92,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasIndex("ChatId");
 
-                    b.ToTable("ChatUsers");
+                    b.ToTable("ChatUsers", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.Department", b =>
@@ -110,7 +110,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Departments");
+                    b.ToTable("Departments", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.DepartmentPost", b =>
@@ -125,7 +125,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("DepartmentPost");
+                    b.ToTable("DepartmentPost", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.Message", b =>
@@ -155,7 +155,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.MessageUser", b =>
@@ -178,7 +178,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasIndex("UserId1");
 
-                    b.ToTable("MessageUsers");
+                    b.ToTable("MessageUsers", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.Post", b =>
@@ -196,7 +196,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.Status", b =>
@@ -214,7 +214,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Statuses");
+                    b.ToTable("Statuses", (string)null);
                 });
 
             modelBuilder.Entity("CorpNetMessenger.Domain.Entities.User", b =>

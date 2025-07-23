@@ -16,6 +16,7 @@ namespace CorpNetMessenger.Infrastructure.Data
         public virtual DbSet<Status> Statuses { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<ChatUser> ChatUsers { get; set; } = null!;
+        public virtual DbSet<DepartmentPost> DepartmentPost { get; set; } = null!;
 
         public MessengerContext(DbContextOptions<MessengerContext> options) : base(options)
         {

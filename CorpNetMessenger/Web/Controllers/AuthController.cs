@@ -103,28 +103,31 @@ namespace CorpNetMessenger.Web.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetPostsByDepartment(int departmentId)
+        {
+            var posts = await _cache.GetOrCreateAsync($"posts_by_{departmentId}", async entry =>
+            {
+                entry.AbsoluteExpiration = DateTime.Now.AddHours(6);
+                var posts = await _unitOfWork.Posts.GetByDepartmentIdAsync(departmentId);
+                return posts.Select(p => new { Id = p.Post.Id, Title = p.Post.Title});
+            });
+            return Json(posts);
+        }
+
         private async Task LoadSelectLists()
         {
-            var departments = await _cache.GetOrCreateAsync("departments", async entry => {
+            var departments = await _cache.GetOrCreateAsync("departments", async entry =>
+            {
                 entry.AbsoluteExpiration = DateTime.Now.AddHours(6);
-                return await _unitOfWork.Departments.GetAllAsync();
-            });
-
-            var posts = await _cache.GetOrCreateAsync("posts", async entry => {
-                entry.AbsoluteExpiration = DateTime.Now.AddHours(6);
-                return await _unitOfWork.Posts.GetAllAsync();
+                var departments = await _unitOfWork.Departments.GetAllAsync();
+                return departments.Select(d => new { Id = d.Id.ToString(), Title = d.Title });
             });
 
             ViewBag.Departments = departments.Select(d => new SelectListItem
             {
-                Value = d.Id.ToString(),
+                Value = d.Id,
                 Text = d.Title
-            }).ToList();
-
-            ViewBag.Posts = posts.Select(p => new SelectListItem
-            {
-                Value = p.Id.ToString(),
-                Text = p.Title
             }).ToList();
         }
 

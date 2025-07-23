@@ -77,7 +77,7 @@
                 <label asp-for="DepartmentId"></label>
                 <span class="text-danger">*</span>
             </div>
-            <select asp-for="DepartmentId" class="main-input-text" asp-items="ViewBag.Departments">
+            <select asp-for="DepartmentId" class="main-input-text" asp-items="ViewBag.Departments" id="departmentSelect">
                 <option value="">-- Выберите отдел --</option>
             </select>
             <span asp-validation-for="DepartmentId" class="text-danger"></span>
@@ -87,8 +87,8 @@
                 <label asp-for="PostId"></label>
                 <span class="text-danger">*</span>
             </div>
-            <select asp-for="PostId" class="main-input-text" asp-items="ViewBag.Posts">
-                <option value="">-- Выберите должность --</option>
+            <select asp-for="PostId" class="main-input-text" id="postSelect">
+                <option value="">-- Сначала выберите отдел --</option>
             </select>
             <span asp-validation-for="PostId" class="text-danger"></span>
         </div>
@@ -99,3 +99,4 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+<script src="~/js/auth/register.js"></script>
