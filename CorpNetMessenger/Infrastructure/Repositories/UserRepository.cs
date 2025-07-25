@@ -12,7 +12,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         public UserRepository(MessengerContext context)
             : base(context) { }
 
-        public async Task<List<ContactViewModel>> GetAllDepartmentContactsAsync(int id)
+        public async Task<IReadOnlyCollection<ContactViewModel>> GetAllDepartmentContactsAsync(int id)
         {
             return await _context
                 .Users.Where(u => u.DepartmentId == id && u.StatusId == StatusTypes.Active)
@@ -26,7 +26,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<ContactViewModel>> GetAllDepartmentContactsAsync(string userId)
+        public async Task<IReadOnlyCollection<ContactViewModel>> GetAllDepartmentContactsAsync(string userId)
         {
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null)

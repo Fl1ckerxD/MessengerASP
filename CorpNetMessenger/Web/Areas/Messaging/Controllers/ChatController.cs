@@ -4,6 +4,7 @@ using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 {
@@ -15,18 +16,21 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IChatService _chatService;
         private readonly IEmployeeService _employeeService;
+        private readonly IMemoryCache _cache;
 
         public ChatController(
             ILogger<ChatController> logger,
             IUnitOfWork unitOfWork,
             IChatService chatService,
-            IEmployeeService employeeService
+            IEmployeeService employeeService,
+            IMemoryCache cache
         )
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
             _chatService = chatService;
             _employeeService = employeeService;
+            _cache = cache;
         }
 
         public async Task<IActionResult> Index(string id)
@@ -48,7 +52,6 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             string currentUserId =
                 user.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? throw new UnauthorizedAccessException("User not authenticated");
-            ;
 
             bool isInChat = await _chatService.UserInChat(id, currentUserId);
 
@@ -65,22 +68,27 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             try
             {
                 var messages = await _chatService.LoadHistoryChatAsync(id, take: 20);
-                var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(currentUserId);
                 var ChatName = (await _unitOfWork.Chats.GetByIdAsync(id)).Name;
 
-                var currentUser = contacts.FirstOrDefault(u => u.Id == currentUserId);
-                if (currentUser != null)
+                var cacheContactsKey = $"contacts_chat_{id}";
+                var contacts = await _cache.GetOrCreateAsync(cacheContactsKey, async entry =>
                 {
-                    contacts.Remove(currentUser);
-                }
-                else
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    return await _unitOfWork.Users.GetAllDepartmentContactsAsync(currentUserId); 
+                });
+
+                var filteredContacts = contacts.Where(u => u.Id != currentUserId).ToList();
+
+                var currentUser = contacts.FirstOrDefault(u => u.Id == currentUserId);
+
+                if (currentUser == null)
                 {
                     _logger.LogWarning("Текущий пользователь не найден в списке контактов");
                 }
 
                 var contactVM = new ContactPanelViewModel
                 {
-                    Contacts = contacts,
+                    Contacts = filteredContacts,
                     CurrentUser = currentUser,
                 };
 

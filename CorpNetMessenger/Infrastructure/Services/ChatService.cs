@@ -286,6 +286,9 @@ namespace CorpNetMessenger.Infrastructure.Services
             ChatUser chatUser = new() { ChatId = chatId, UserId = user.Id };
             user.Chats.Add(chatUser);
             await _unitOfWork.SaveAsync();
+
+            var cacheContactsKey = $"contacts_chat_{chatId}";
+            _cache.Remove(cacheContactsKey);
         }
 
         /// <summary>

@@ -364,15 +364,22 @@ document.getElementById("employeeList").addEventListener("click", async (e) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // поиск сотрудников
-    document.getElementById('searchInput').addEventListener('input', debounce(function () {
-        const searchTerm = document.getElementById('searchInput').value;
+    document.getElementById('searchInput').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll("#employeeList .employee-item");
 
-        fetch(`/Messaging/Chat/SearchEmployees?term=${encodeURIComponent(searchTerm)}`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('employeeList').innerHTML = html;
-            });
-    }));
+        rows.forEach(row => {
+            const employeeInfo = row.children[1];
+            const name = employeeInfo.children[0].textContent.toLowerCase();
+            const position = employeeInfo.children[1].textContent.toLowerCase();
+
+            if (name.includes(searchTerm) || position.includes(searchTerm)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
 
     // открыть диалог выбора файлов
     addFileBtn.addEventListener('click', () => {

@@ -61,29 +61,20 @@ namespace CorpNetMessenger.Infrastructure.Services
             string userId
         )
         {
-            List<ContactViewModel> contacts;
+            List<ContactViewModel> filteredContacts;
 
             if (string.IsNullOrWhiteSpace(term))
             {
-                contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId);
+                var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId);
+                filteredContacts = contacts.Where(u => u.Id != userId).ToList();
             }
             else
             {
                 var search = await _unitOfWork.Users.SearchContactsByNameAsync(term, departmentId);
-                contacts = _mapper.Map<List<ContactViewModel>>(search);
+                filteredContacts = _mapper.Map<List<ContactViewModel>>(search);
             }
 
-            var currentUser = contacts.FirstOrDefault(u => u.Id == userId);
-            if (currentUser != null)
-            {
-                contacts.Remove(currentUser);
-            }
-            else
-            {
-                _logger.LogWarning("Текущий пользователь не найден в списке контактов");
-            }
-
-            return contacts;
+            return filteredContacts;
         }
     }
 }
