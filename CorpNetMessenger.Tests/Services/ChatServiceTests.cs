@@ -2,6 +2,7 @@
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
+using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
@@ -20,12 +21,16 @@ namespace CorpNetMessenger.Tests.Services
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<UserManager<User>> _mockUserManager;
         private readonly ChatService _chatService;
+        private readonly Mock<IMemoryCache> _mockCache;
+        private readonly Mock<IChatCacheService> _mockChatCacheService;
 
         public ChatServiceTests()
         {
             _mockUnitOfWork = new Mock<IUnitOfWork>();
             _mockLogger = new Mock<ILogger<ChatService>>();
             _mockMapper = new Mock<IMapper>();
+            _mockCache = new Mock<IMemoryCache>();
+            _mockChatCacheService = new Mock<IChatCacheService>();
 
             var userStoreMock = new Mock<IUserStore<User>>();
             _mockUserManager = new Mock<UserManager<User>>(
@@ -36,7 +41,8 @@ namespace CorpNetMessenger.Tests.Services
                 _mockLogger.Object,
                 _mockMapper.Object,
                 _mockUserManager.Object,
-                Mock.Of<IMemoryCache>());
+                _mockCache.Object,
+                _mockChatCacheService.Object);
 
             _mockUnitOfWork.Setup(u => u.ChatUsers.GetByPredicateAsync(
                 It.IsAny<Expression<Func<ChatUser, bool>>>()))
@@ -255,10 +261,18 @@ namespace CorpNetMessenger.Tests.Services
             _mockUnitOfWork.Setup(u => u.Chats.AnyAsync(It.IsAny<Expression<Func<Chat, bool>>>()))
                 .ReturnsAsync(true);
 
+            var expectedMessages = new List<Message>();
             _mockUnitOfWork.Setup(u => u.Messages.LoadHistoryChatAsync(chatId, skip, take))
-                .ReturnsAsync(new List<Message>());
+                .ReturnsAsync(expectedMessages);
 
-            await _chatService.LoadHistoryChatAsync(chatId, skip, take);
+            object cachedValue = null;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<string>(), out cachedValue))
+                .Returns(false);
+
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<string>()))
+                .Returns(Mock.Of<ICacheEntry>);
+
+            var result = await _chatService.LoadHistoryChatAsync(chatId, skip, take);
 
             _mockUnitOfWork.Verify(u => u.Messages.LoadHistoryChatAsync(chatId, skip, take), Times.Once);
         }
@@ -287,6 +301,13 @@ namespace CorpNetMessenger.Tests.Services
 
             _mockMapper.Setup(m => m.Map<List<MessageDto>>(testMessages))
                 .Returns(expectedDtos);
+
+            object cachedValue = null;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<string>(), out cachedValue))
+                .Returns(false);
+
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<string>()))
+                .Returns(Mock.Of<ICacheEntry>);
 
             var result = await _chatService.LoadHistoryChatAsync(chatId);
 

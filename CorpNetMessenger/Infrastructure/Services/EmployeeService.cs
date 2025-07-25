@@ -71,7 +71,8 @@ namespace CorpNetMessenger.Infrastructure.Services
             else
             {
                 var search = await _unitOfWork.Users.SearchContactsByNameAsync(term, departmentId);
-                filteredContacts = _mapper.Map<List<ContactViewModel>>(search);
+                var filteredSearch = search.Where(u => u.Id != userId).ToList();
+                filteredContacts = _mapper.Map<List<ContactViewModel>>(filteredSearch);
             }
 
             return filteredContacts;

@@ -71,6 +71,8 @@ namespace MessengerASP
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IRequestService, RequestService>();
 
+            builder.Services.AddSingleton<IChatCacheService, ChatCacheService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

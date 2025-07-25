@@ -52,12 +52,13 @@ namespace CorpNetMessenger.Tests.Services
         [Fact]
         public async Task SearchEmployees_EmptyTerm_ReturnsAllDepartmentContacts()
         {
-            var userId = "user1";
+            var userId = "currentUserId";
             var departmentId = 1;
             var expectedContacts = new List<ContactViewModel>
             {
                 new ContactViewModel { Id = "user1" },
                 new ContactViewModel { Id = "user2" },
+                new ContactViewModel { Id = "currentUserId" },
             };
 
             _mockUnitOfWork
@@ -66,7 +67,7 @@ namespace CorpNetMessenger.Tests.Services
 
             var result = await _employeeService.SearchEmployees("", departmentId, userId);
 
-            Assert.Equal(expectedContacts.Count, result.Count());
+            Assert.Equal(expectedContacts.Count - 1, result.Count());
             _mockUnitOfWork.Verify(u => u.Users.GetAllDepartmentContactsAsync(userId), Times.Once);
             _mockUnitOfWork.Verify(
                 u => u.Users.SearchContactsByNameAsync(It.IsAny<string>(), It.IsAny<int>()),
@@ -87,7 +88,6 @@ namespace CorpNetMessenger.Tests.Services
             };
             var expectedViewModels = new List<ContactViewModel>
             {
-                new ContactViewModel { Id = "user1" },
                 new ContactViewModel { Id = "user2" },
             };
 
@@ -95,7 +95,7 @@ namespace CorpNetMessenger.Tests.Services
                 .Setup(u => u.Users.SearchContactsByNameAsync(term, departmentId))
                 .ReturnsAsync(searchResults);
             _mockMapper
-                .Setup(m => m.Map<List<ContactViewModel>>(searchResults))
+                .Setup(m => m.Map<List<ContactViewModel>>(It.IsAny<List<User>>()))
                 .Returns(expectedViewModels);
 
             var result = await _employeeService.SearchEmployees(term, departmentId, userId);

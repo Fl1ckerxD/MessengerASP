@@ -8,6 +8,8 @@ using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Identity.Client;
+using System.Collections;
+using System.Reflection;
 using System.Security.Authentication;
 
 namespace CorpNetMessenger.Infrastructure.Services
@@ -19,14 +21,16 @@ namespace CorpNetMessenger.Infrastructure.Services
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
         private readonly IMemoryCache _cache;
+        private readonly IChatCacheService _chatCacheService;
         public ChatService(IUnitOfWork unitOfWork, ILogger<ChatService> logger,
-            IMapper mapper, UserManager<User> userManager, IMemoryCache cache)
+            IMapper mapper, UserManager<User> userManager, IMemoryCache cache, IChatCacheService chatCacheService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
             _cache = cache;
+            _chatCacheService = chatCacheService;
         }
 
         /// <summary>
@@ -149,11 +153,27 @@ namespace CorpNetMessenger.Infrastructure.Services
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             if (take < 1 || take > 100) throw new ArgumentOutOfRangeException(nameof(take));
 
-            if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId)) // Проверка наличия чата с таким id
+            var cacheKey = $"chat_history_{chatId}_skip{skip}_take{take}";
+            _chatCacheService.RegisterCacheKey(chatId, cacheKey);
+            if (_cache.TryGetValue(cacheKey, out List<MessageDto> cachedMessages))
+            {
+                return cachedMessages;
+            }
+
+            // Проверка существования чата
+            if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId))
                 throw new Exception("Такого чата нет");
 
             var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
-            return _mapper.Map<List<MessageDto>>(messages);
+            var messageDtos = _mapper.Map<List<MessageDto>>(messages);
+
+            // Сохранение в кэш
+            _cache.Set(cacheKey, messageDtos, new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(5)
+            });
+
+            return messageDtos;
         }
 
         /// <summary>

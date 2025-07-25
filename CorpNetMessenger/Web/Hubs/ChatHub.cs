@@ -14,12 +14,14 @@ namespace CorpNetMessenger.Web.Hubs
         private readonly IChatService _chatService;
         private readonly IUnitOfWork _unitOfWork;
         private static readonly ConcurrentDictionary<string, string> UserGroups = new();
+        private readonly IChatCacheService _chatCacheService;
         public ChatHub(ILogger<ChatHub> logger, IChatService chatService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork, IChatCacheService chatCacheService)
         {
             _logger = logger;
             _chatService = chatService;
             _unitOfWork = unitOfWork;
+            _chatCacheService = chatCacheService;
         }
 
         public async Task Enter(string chatId)
@@ -79,7 +81,10 @@ namespace CorpNetMessenger.Web.Hubs
                 var result = await _chatService.EditMessage(messageId, newText, userId);
 
                 if (result.Success)
+                {
+                    _chatCacheService.InvalidateChatCache(chatId);
                     Clients.Group(chatId).SendAsync("UpdateMessage", messageId, newText);
+                }
                 else
                     await Clients.Caller.SendAsync("Error", result.Error);
             }
@@ -107,7 +112,10 @@ namespace CorpNetMessenger.Web.Hubs
                 var result = await _chatService.DeleteMessage(messageId, userId);
 
                 if (result.Success)
+                {
+                    _chatCacheService.InvalidateChatCache(chatId);
                     await Clients.Group(chatId).SendAsync("RemoveMessage", messageId);
+                }
                 else
                     await Clients.Caller.SendAsync("Error", result.Error);
             }
