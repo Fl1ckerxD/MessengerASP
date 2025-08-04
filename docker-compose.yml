@@ -1,0 +1,39 @@
+services:
+  messenger:
+    build:
+      context: .
+      dockerfile: CorpNetMessenger/Dockerfile
+    container_name: CorpNetMessenger
+    ports:
+      - "8080:80"
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Production
+        - ASPNETCORE_URLS=http://+:80
+        - ConnectionStrings__DockerConnection=Server=db;Database=CorpNetMessenger;User=sa;Password=MyStrong@Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      - db
+    networks:
+      - messenger-network
+    restart: unless-stopped
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: CorpNetMessenger-mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=MyStrong@Passw0rd
+    volumes:
+      - sql-data:/var/opt/mssql
+    ports:
+      - "1433:1433"
+    networks:
+      - messenger-network
+    restart: unless-stopped
+
+networks:
+  messenger-network:
+    name: messenger-network
+    driver: bridge
+  
+volumes:
+  sql-data:

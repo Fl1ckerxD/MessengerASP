@@ -601,6 +601,12 @@ html {
     margin-bottom: 10px;
 }
 
+.admin-button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+
 .profile-container-info {
     display: flex;
     gap: 10px;

@@ -41,7 +41,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
                     FileName NVARCHAR(255) NOT NULL,
                     FileLength bigint NOT NULL,
                     ContentType nvarchar(max) NOT NULL,
-                    FileData VARBINARY(MAX) FILESTREAM NOT NULL
+                    FileData VARBINARY(MAX) NOT NULL
                 );");
         }
 

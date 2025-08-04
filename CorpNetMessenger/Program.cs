@@ -4,18 +4,20 @@ using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Domain.MappingProfiles;
 using CorpNetMessenger.Infrastructure.Data;
+using CorpNetMessenger.Infrastructure.Data.SeedData;
 using CorpNetMessenger.Infrastructure.Repositories;
 using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.Serialization.Formatters;
+using System.Threading.Tasks;
 
 namespace MessengerASP
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +27,9 @@ namespace MessengerASP
                 options.ViewLocationExpanders.Add(new CustomViewLocationExpander());
             });
 
-            var conString = builder.Configuration.GetConnectionString("CorpNetMessenger") ??
-                throw new InvalidOperationException("Connection string 'CorpNetMessenger' not found.");
+            const string CONNECTION_STRING = "DockerConnection";
+            var conString = builder.Configuration.GetConnectionString(CONNECTION_STRING) ??
+                throw new InvalidOperationException($"Connection string '{CONNECTION_STRING}' not found.");
             builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -74,6 +77,23 @@ namespace MessengerASP
             builder.Services.AddSingleton<IChatCacheService, ChatCacheService>();
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<MessengerContext>();
+                    var userManager = services.GetRequiredService<UserManager<User>>();
+                    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                    await SeedData.SeedAsync(context, userManager, roleManager, app.Logger);
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "Error migrating database");
+                }
+            }
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

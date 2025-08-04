@@ -258,7 +258,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ChatUser",
+                name: "ChatUsers",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
@@ -268,14 +268,14 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChatUser", x => new { x.UserId, x.ChatId });
+                    table.PrimaryKey("PK_ChatUsers", x => new { x.UserId, x.ChatId });
                     table.ForeignKey(
-                        name: "FK_ChatUser_AspNetUsers_UserId",
+                        name: "FK_ChatUsers_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_ChatUser_Chats_ChatId",
+                        name: "FK_ChatUsers_Chats_ChatId",
                         column: x => x.ChatId,
                         principalTable: "Chats",
                         principalColumn: "Id");
@@ -419,8 +419,8 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
                 column: "DepartmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatUser_ChatId",
-                table: "ChatUser",
+                name: "IX_ChatUsers_ChatId",
+                table: "ChatUsers",
                 column: "ChatId");
 
             migrationBuilder.CreateIndex(
@@ -473,7 +473,7 @@ namespace CorpNetMessenger.Infrastructure.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "ChatUser");
+                name: "ChatUsers");
 
             migrationBuilder.DropTable(
                 name: "DepartmentPost");

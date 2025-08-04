@@ -8,13 +8,19 @@
     <div class="header-container">
         <a href="/" class="back-button">❮ Назад</a>
         <h2>Редактировать профиль</h2>
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="/Admin/Users/List" class="back-button admin-button">Окно администратора ❯</a>
+        }
     </div>
     <form method="post" asp-action="Edit" enctype="multipart/form-data">
         <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size: 20px;"></div>
         <div class="profile-container-info">
             <div>
                 <input asp-for="AvatarFile" hidden />
-                <img class="profile-avatar" src="@Url.Action("GetAvatar", "Account", new { userId = User.FindFirstValue(ClaimTypes.NameIdentifier) })" alt="Аватар" />
+                <img class="profile-avatar"
+                    src="@Url.Action("GetAvatar", "Account", new { userId = User.FindFirstValue(ClaimTypes.NameIdentifier) })"
+                    alt="Аватар" />
                 <span asp-validation-for="AvatarFile" class="text-danger"></span>
             </div>
 
