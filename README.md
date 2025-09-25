@@ -122,4 +122,5 @@ http://localhost:8080
 Если у вас есть вопросы или предложения, напишите мне:
 
 - Email: mihaylov.slava@outlook.com
+- Email: mihaylov.slava@outlook.com
 - Telegram: @Fl1cker_0
