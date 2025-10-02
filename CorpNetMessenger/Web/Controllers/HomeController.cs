@@ -13,20 +13,20 @@ namespace CorpNetMessenger.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IChatService _chatService;
+        private readonly IUserContext _userContext;
 
-        public HomeController(ILogger<HomeController> logger, IChatService chatService)
+        public HomeController(ILogger<HomeController> logger, IChatService chatService, IUserContext userContext)
         {
             _logger = logger;
             _chatService = chatService;
+            _userContext = userContext;
         }
 
         public async Task<IActionResult> Index()
         {
             try
             {
-                string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                var chat = await _chatService.GetDepartmentChatForUserAsync(userId);
+                var chat = await _chatService.GetDepartmentChatForUserAsync(_userContext.UserId);
 
                 return Redirect($"/messaging/chat/{chat.Id}");
             }

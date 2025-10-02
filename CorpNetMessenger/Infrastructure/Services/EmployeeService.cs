@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace CorpNetMessenger.Infrastructure.Services
 {

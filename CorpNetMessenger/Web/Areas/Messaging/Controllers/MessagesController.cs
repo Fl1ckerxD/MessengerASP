@@ -1,5 +1,4 @@
 ﻿using CorpNetMessenger.Domain.DTOs;
-using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Hubs;
@@ -16,7 +15,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
     public class MessagesController : Controller
     {
         private const int MaxMessageLength = 200;
-        private const int MaxFileSize = 10 * 1024 * 1024; // 10MB
+        private const int MaxFileSize = 15 * 1024 * 1024; // 15MB
         private const int MaxFileCount = 5;
 
         private readonly IHubContext<ChatHub> _hubContext;
@@ -26,11 +25,12 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly IFileService _fileService;
         private readonly IChatCacheService _chatCacheService;
         private readonly IMessageService _messageService;
+        private readonly IUserContext _userContext;
 
         public MessagesController(IHubContext<ChatHub> hubContext, ILogger<MessagesController> logger,
             IChatService chatService, IUnitOfWork unitOfWork,
             IFileService fileService, IChatCacheService chatCacheService,
-            IMessageService messageService)
+            IMessageService messageService, IUserContext userContext)
         {
             _logger = logger;
             _chatService = chatService;
@@ -39,11 +39,12 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             _fileService = fileService;
             _chatCacheService = chatCacheService;
             _messageService = messageService;
+            _userContext = userContext;
         }
 
         [HttpPost("send")]
-        [RequestSizeLimit(15 * 1024 * 1024)] // 15MB на весь запрос
-        [RequestFormLimits(MultipartBodyLengthLimit = 15 * 1024 * 1024, ValueCountLimit = MaxFileCount)] // Лимит до 5 файлов
+        [RequestSizeLimit(MaxFileSize)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaxFileSize, ValueCountLimit = MaxFileCount)] // Лимит до 5 файлов
         public async Task<IActionResult> Send()
         {
             var form = await Request.ReadFormAsync();
@@ -52,10 +53,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             var chatId = form["chatId"].ToString();
             var files = form.Files;
 
-            var user = HttpContext.User;
-            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (!await _chatService.UserInChat(chatId, userId))
+            if (!await _chatService.UserInChat(chatId, _userContext.UserId))
                 return Forbid("Вы не состоите в этом чате");
 
             if (string.IsNullOrWhiteSpace(message) && !files.Any())
@@ -74,7 +72,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                     Files = attachments
                 };
 
-                string messageId = await _messageService.SaveMessage(chatMessageDto, userId);
+                string messageId = await _messageService.SaveMessage(chatMessageDto, _userContext.UserId);
                 var messageDto = await _messageService.GetMessageAsync(messageId);
 
                 _chatCacheService.InvalidateChatCache(chatId);

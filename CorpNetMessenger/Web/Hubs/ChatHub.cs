@@ -3,7 +3,6 @@ using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Hubs
 {
@@ -16,20 +15,21 @@ namespace CorpNetMessenger.Web.Hubs
         private static readonly ConcurrentDictionary<string, string> UserGroups = new();
         private readonly IChatCacheService _chatCacheService;
         private readonly IMessageService _messageService;
+        private readonly IUserContext _userContext;
         public ChatHub(ILogger<ChatHub> logger, IChatService chatService,
             IUnitOfWork unitOfWork, IChatCacheService chatCacheService,
-            IMessageService messageService)
+            IMessageService messageService, IUserContext userContext)
         {
             _logger = logger;
             _chatService = chatService;
             _unitOfWork = unitOfWork;
             _chatCacheService = chatCacheService;
             _messageService = messageService;
+            _userContext = userContext;
         }
 
         public async Task Enter(string chatId)
         {
-            string userId = GetUserId();
             string connectionId = Context.ConnectionId;
 
             // Проверка уже существующего подключения
@@ -39,7 +39,7 @@ namespace CorpNetMessenger.Web.Hubs
                 await Groups.RemoveFromGroupAsync(connectionId, currentChat);
             }
 
-            bool isInChat = await _chatService.UserInChat(chatId, userId);
+            bool isInChat = await _chatService.UserInChat(chatId, _userContext.UserId);
             if (!isInChat)
             {
                 await Clients.Caller.SendAsync("Error", "Доступ запрещён");
@@ -64,8 +64,6 @@ namespace CorpNetMessenger.Web.Hubs
         {
             try
             {
-                string userId = GetUserId();
-
                 // Проверка принадлежности соощения чату
                 var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
                 if (message == null || message.ChatId != chatId)
@@ -75,13 +73,13 @@ namespace CorpNetMessenger.Web.Hubs
                 }
 
                 // Проверка членства в чате
-                if (!await _chatService.UserInChat(chatId, userId))
+                if (!await _chatService.UserInChat(chatId, _userContext.UserId))
                 {
                     await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                     return;
                 }
 
-                var result = await _messageService.EditMessage(messageId, newText, userId);
+                var result = await _messageService.EditMessage(messageId, newText, _userContext.UserId);
 
                 if (result.Success)
                 {
@@ -102,8 +100,6 @@ namespace CorpNetMessenger.Web.Hubs
         {
             try
             {
-                string userId = GetUserId();
-
                 // Проверка принадлежности соощения чату
                 var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
                 if (message == null || message.ChatId != chatId)
@@ -112,7 +108,7 @@ namespace CorpNetMessenger.Web.Hubs
                     return;
                 }
 
-                var result = await _messageService.DeleteMessage(messageId, userId);
+                var result = await _messageService.DeleteMessage(messageId, _userContext.UserId);
 
                 if (result.Success)
                 {
@@ -133,10 +129,8 @@ namespace CorpNetMessenger.Web.Hubs
         {
             try
             {
-                string userId = GetUserId();
-
                 // Проверка членства в чате
-                if (!await _chatService.UserInChat(chatId, userId))
+                if (!await _chatService.UserInChat(chatId, _userContext.UserId))
                 {
                     await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                     return;
@@ -153,12 +147,6 @@ namespace CorpNetMessenger.Web.Hubs
                 _logger.LogError(ex, "Ошибка загрузки истории для чата {ChatId}", chatId);
                 await Clients.Caller.SendAsync("Error", "Ошибка загрузки истории");
             }
-        }
-
-        private string GetUserId()
-        {
-            var user = Context.User;
-            return user.FindFirstValue(ClaimTypes.NameIdentifier);
         }
     }
 }

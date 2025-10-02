@@ -18,6 +18,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly IMessageService _messageService;
         private readonly IEmployeeService _employeeService;
         private readonly IMemoryCache _cache;
+        private readonly IUserContext _userContext;
 
         public ChatController(
             ILogger<ChatController> logger,
@@ -25,7 +26,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             IChatService chatService,
             IEmployeeService employeeService,
             IMemoryCache cache,
-            IMessageService messageService
+            IMessageService messageService,
+            IUserContext userContext
         )
         {
             _logger = logger;
@@ -34,6 +36,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             _employeeService = employeeService;
             _cache = cache;
             _messageService = messageService;
+            _userContext = userContext;
         }
 
         public async Task<IActionResult> Index(string id)
@@ -50,12 +53,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                 _logger.LogWarning("Чат {ChatId} не найден", id);
                 return NotFound();
             }
-
-            var user = HttpContext.User;
-            string currentUserId =
-                user.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? throw new UnauthorizedAccessException("User not authenticated");
-
+            string currentUserId = _userContext.UserId;
             bool isInChat = await _chatService.UserInChat(id, currentUserId);
 
             if (!isInChat)
@@ -115,7 +113,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
         public async Task<IActionResult> SearchEmployees(string term)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = await _unitOfWork.Users.GetByIdAsync(_userContext.UserId);
             var employees = await _employeeService.SearchEmployees(term, user.DepartmentId.Value, user.Id);
             return PartialView("_EmployeeListPartial", employees);
         }

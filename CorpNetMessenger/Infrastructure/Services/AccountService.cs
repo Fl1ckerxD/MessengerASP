@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CorpNetMessenger.Application.Configs;
 using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
