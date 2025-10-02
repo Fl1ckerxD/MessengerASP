@@ -74,6 +74,7 @@ namespace MessengerASP
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IRequestService, RequestService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
+            builder.Services.AddScoped<IUserContext, UserContext>();
 
             builder.Services.AddSingleton<IChatCacheService, ChatCacheService>();
 
