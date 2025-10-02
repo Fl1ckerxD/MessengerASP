@@ -15,6 +15,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly ILogger<ChatController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IChatService _chatService;
+        private readonly IMessageService _messageService;
         private readonly IEmployeeService _employeeService;
         private readonly IMemoryCache _cache;
 
@@ -23,7 +24,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             IUnitOfWork unitOfWork,
             IChatService chatService,
             IEmployeeService employeeService,
-            IMemoryCache cache
+            IMemoryCache cache,
+            IMessageService messageService
         )
         {
             _logger = logger;
@@ -31,6 +33,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             _chatService = chatService;
             _employeeService = employeeService;
             _cache = cache;
+            _messageService = messageService;
         }
 
         public async Task<IActionResult> Index(string id)
@@ -67,7 +70,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var messages = await _chatService.LoadHistoryChatAsync(id, take: 20);
+                var messages = await _messageService.LoadHistoryChatAsync(id, take: 20);
                 var ChatName = (await _unitOfWork.Chats.GetByIdAsync(id)).Name;
 
                 var cacheContactsKey = $"contacts_chat_{id}";

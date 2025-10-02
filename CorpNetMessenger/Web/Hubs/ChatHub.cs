@@ -15,13 +15,16 @@ namespace CorpNetMessenger.Web.Hubs
         private readonly IUnitOfWork _unitOfWork;
         private static readonly ConcurrentDictionary<string, string> UserGroups = new();
         private readonly IChatCacheService _chatCacheService;
+        private readonly IMessageService _messageService;
         public ChatHub(ILogger<ChatHub> logger, IChatService chatService,
-            IUnitOfWork unitOfWork, IChatCacheService chatCacheService)
+            IUnitOfWork unitOfWork, IChatCacheService chatCacheService,
+            IMessageService messageService)
         {
             _logger = logger;
             _chatService = chatService;
             _unitOfWork = unitOfWork;
             _chatCacheService = chatCacheService;
+            _messageService = messageService;
         }
 
         public async Task Enter(string chatId)
@@ -78,7 +81,7 @@ namespace CorpNetMessenger.Web.Hubs
                     return;
                 }
 
-                var result = await _chatService.EditMessage(messageId, newText, userId);
+                var result = await _messageService.EditMessage(messageId, newText, userId);
 
                 if (result.Success)
                 {
@@ -109,7 +112,7 @@ namespace CorpNetMessenger.Web.Hubs
                     return;
                 }
 
-                var result = await _chatService.DeleteMessage(messageId, userId);
+                var result = await _messageService.DeleteMessage(messageId, userId);
 
                 if (result.Success)
                 {
@@ -142,7 +145,7 @@ namespace CorpNetMessenger.Web.Hubs
                 // Ограничиваем размер выборки
                 take = Math.Clamp(take, 1, 50);
 
-                var messages = await _chatService.LoadHistoryChatAsync(chatId, skip, take);
+                var messages = await _messageService.LoadHistoryChatAsync(chatId, skip, take);
                 await Clients.Caller.SendAsync("ReceiveHistory", messages);
             }
             catch (Exception ex)

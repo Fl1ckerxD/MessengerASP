@@ -25,9 +25,12 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileService _fileService;
         private readonly IChatCacheService _chatCacheService;
+        private readonly IMessageService _messageService;
 
         public MessagesController(IHubContext<ChatHub> hubContext, ILogger<MessagesController> logger,
-            IChatService chatService, IUnitOfWork unitOfWork, IFileService fileService, IChatCacheService chatCacheService)
+            IChatService chatService, IUnitOfWork unitOfWork,
+            IFileService fileService, IChatCacheService chatCacheService,
+            IMessageService messageService)
         {
             _logger = logger;
             _chatService = chatService;
@@ -35,6 +38,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             _unitOfWork = unitOfWork;
             _fileService = fileService;
             _chatCacheService = chatCacheService;
+            _messageService = messageService;
         }
 
         [HttpPost("send")]
@@ -70,8 +74,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                     Files = attachments
                 };
 
-                string messageId = await _chatService.SaveMessage(chatMessageDto, userId);
-                var messageDto = await _chatService.GetMessageAsync(messageId);
+                string messageId = await _messageService.SaveMessage(chatMessageDto, userId);
+                var messageDto = await _messageService.GetMessageAsync(messageId);
 
                 _chatCacheService.InvalidateChatCache(chatId);
 

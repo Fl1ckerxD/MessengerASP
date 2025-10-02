@@ -27,7 +27,7 @@ namespace MessengerASP
                 options.ViewLocationExpanders.Add(new CustomViewLocationExpander());
             });
 
-            const string CONNECTION_STRING = "DockerConnection";
+            const string CONNECTION_STRING = "CorpNetMessenger";
             var conString = builder.Configuration.GetConnectionString(CONNECTION_STRING) ??
                 throw new InvalidOperationException($"Connection string '{CONNECTION_STRING}' not found.");
             builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
@@ -73,6 +73,7 @@ namespace MessengerASP
             builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IRequestService, RequestService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
 
             builder.Services.AddSingleton<IChatCacheService, ChatCacheService>();
 
