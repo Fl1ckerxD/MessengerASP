@@ -31,9 +31,18 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <returns>Результат попытки входа</returns>
         public async Task<SignInResult> Login(LoginViewModel model)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             try
             {
                 var user = await _userManager.FindByNameAsync(model.UserName);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("Попытка входа с несуществующим пользователем: {UserName}", model.UserName);
+                    return SignInResult.Failed;
+                }
 
                 if (user.StatusId != StatusTypes.Active)
                     return SignInResult.NotAllowed;
@@ -98,6 +107,9 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <returns>Результат регистрации</returns>
         public async Task<IdentityResult> Register(RegisterViewModel model)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             try
             {
                 if (await _userManager.FindByEmailAsync(model.Email) != null)

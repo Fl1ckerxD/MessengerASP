@@ -10,8 +10,6 @@ using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.Serialization.Formatters;
-using System.Threading.Tasks;
 
 namespace MessengerASP
 {
@@ -53,7 +51,6 @@ namespace MessengerASP
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Auth/Login";
-                options.ReturnUrlParameter = "243523";
             });
 
             builder.Services.AddResponseCompression(opt =>
@@ -111,13 +108,13 @@ namespace MessengerASP
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions()
             {
-               OnPrepareResponse = ctx =>
-               {
-                  ctx.Context.Response.Headers.Append(
+                OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers.Append(
                     "Cache-Control",
                     "public,max-age=2592000"
                     );
-               }
+                }
             });
 
             app.UseRouting();

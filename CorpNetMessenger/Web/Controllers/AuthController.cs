@@ -1,4 +1,5 @@
-﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using System.Threading.Tasks;
+using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -25,7 +26,12 @@ namespace CorpNetMessenger.Web.Controllers
         }
 
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
-        public IActionResult Login() => View();
+        public async Task<IActionResult> Login()
+        {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "Home");
+            return View();
+        }
 
         [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> Register()
@@ -110,7 +116,7 @@ namespace CorpNetMessenger.Web.Controllers
             {
                 entry.AbsoluteExpiration = DateTime.Now.AddHours(6);
                 var posts = await _unitOfWork.Posts.GetByDepartmentIdAsync(departmentId);
-                return posts.Select(p => new { Id = p.Post.Id, Title = p.Post.Title});
+                return posts.Select(p => new { Id = p.Post.Id, Title = p.Post.Title });
             });
             return Json(posts);
         }
