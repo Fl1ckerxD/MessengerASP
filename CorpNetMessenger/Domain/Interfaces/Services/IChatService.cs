@@ -7,7 +7,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
         Task<bool> UserInChat(string chatId, string userId);
         Task<Chat> GetDepartmentChatForUserAsync(string userId);
         Task AddUserToChat(string userId, string chatId);
-        Task AddUserToChat(User user, Chat chat);
         Task AddUserToChat(User user, string chatId);
         Task AddUserToDepartmentChat(User user);
     }

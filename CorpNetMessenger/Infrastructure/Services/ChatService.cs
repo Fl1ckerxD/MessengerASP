@@ -86,17 +86,6 @@ namespace CorpNetMessenger.Infrastructure.Services
         }
 
         /// <summary>
-        /// Добавляет пользователя в чат
-        /// </summary>
-        /// <param name="user">Объект пользователя</param>
-        /// <param name="chat">Объект чата</param>
-        public async Task AddUserToChat(User user, Chat chat)
-        {
-            ArgumentNullException.ThrowIfNull(chat);
-            await AddUserToChat(user, chat.Id);
-        }
-
-        /// <summary>
         /// Основной метод добавления пользователя в чат
         /// </summary>
         /// <param name="user">Объект пользователя</param>
@@ -107,19 +96,27 @@ namespace CorpNetMessenger.Infrastructure.Services
             if (string.IsNullOrEmpty(chatId))
                 throw new ArgumentNullException(nameof(chatId), "Chat ID не может быть пустым");
 
-            // Проверка существования чата
-            var chatExists = await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId);
-            if (!chatExists)
-                throw new InvalidOperationException($"Чата с ID {chatId} не существует");
+            try
+            {
+                // Проверка существования чата
+                var chatExists = await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId);
+                if (!chatExists)
+                    throw new InvalidOperationException($"Чата с ID {chatId} не существует");
 
-            // Проверка, что пользователь еще не в чате
-            var isUserInChat = await UserInChat(chatId, user.Id);
-            if (isUserInChat)
-                throw new InvalidOperationException("Пользователь уже в этом чате");
+                // Проверка, что пользователь еще не в чате
+                var isUserInChat = await UserInChat(chatId, user.Id);
+                if (isUserInChat)
+                    throw new InvalidOperationException("Пользователь уже в этом чате");
 
-            ChatUser chatUser = new() { ChatId = chatId, UserId = user.Id };
-            user.Chats.Add(chatUser);
-            await _unitOfWork.SaveAsync();
+                ChatUser chatUser = new() { ChatId = chatId, UserId = user.Id };
+                user.Chats.Add(chatUser);
+                await _unitOfWork.SaveAsync();     
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при добавлении пользователя {UserId} в чат {ChatId}: {Message}", user.Id, chatId, ex.Message);
+                throw;
+            }
 
             var cacheContactsKey = $"contacts_chat_{chatId}";
             _cache.Remove(cacheContactsKey);
@@ -132,8 +129,13 @@ namespace CorpNetMessenger.Infrastructure.Services
         public async Task AddUserToDepartmentChat(User user)
         {
             ArgumentNullException.ThrowIfNull(user);
+            if (user.DepartmentId == null)
+                throw new InvalidOperationException("У пользователя не назначен отдел");
+
             var chat = await _unitOfWork.Chats.GetByDepartmentIdAsync(user.DepartmentId.Value);
-            await AddUserToChat(user, chat);
+            if (chat == null)
+                throw new InvalidOperationException("Чат отдела не найден");
+            await AddUserToChat(user, chat.Id);
         }
     }
 }
