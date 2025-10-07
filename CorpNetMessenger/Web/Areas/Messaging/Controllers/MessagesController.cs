@@ -53,7 +53,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             var chatId = form["chatId"].ToString();
             var files = form.Files;
 
-            if (!await _chatService.UserInChat(chatId, _userContext.UserId))
+            if (!await _chatService.UserInChatAsync(chatId, _userContext.UserId))
                 return Forbid("Вы не состоите в этом чате");
 
             if (string.IsNullOrWhiteSpace(message) && !files.Any())
@@ -64,7 +64,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var attachments = await _fileService.ProcessFiles(files);
+                var attachments = await _fileService.ProcessFilesAsync(files);
                 var chatMessageDto = new ChatMessageDto
                 {
                     ChatId = chatId,
@@ -72,7 +72,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                     Files = attachments
                 };
 
-                string messageId = await _messageService.SaveMessage(chatMessageDto, _userContext.UserId);
+                string messageId = await _messageService.SaveMessageAsync(chatMessageDto, _userContext.UserId);
                 var messageDto = await _messageService.GetMessageAsync(messageId);
 
                 _chatCacheService.InvalidateChatCache(chatId);

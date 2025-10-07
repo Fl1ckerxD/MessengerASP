@@ -39,7 +39,7 @@ namespace CorpNetMessenger.Web.Hubs
                 await Groups.RemoveFromGroupAsync(connectionId, currentChat);
             }
 
-            bool isInChat = await _chatService.UserInChat(chatId, _userContext.UserId);
+            bool isInChat = await _chatService.UserInChatAsync(chatId, _userContext.UserId);
             if (!isInChat)
             {
                 await Clients.Caller.SendAsync("Error", "Доступ запрещён");
@@ -73,13 +73,13 @@ namespace CorpNetMessenger.Web.Hubs
                 }
 
                 // Проверка членства в чате
-                if (!await _chatService.UserInChat(chatId, _userContext.UserId))
+                if (!await _chatService.UserInChatAsync(chatId, _userContext.UserId))
                 {
                     await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                     return;
                 }
 
-                var result = await _messageService.EditMessage(messageId, newText, _userContext.UserId);
+                var result = await _messageService.EditMessageAsync(messageId, newText, _userContext.UserId);
 
                 if (result.Success)
                 {
@@ -108,7 +108,7 @@ namespace CorpNetMessenger.Web.Hubs
                     return;
                 }
 
-                var result = await _messageService.DeleteMessage(messageId, _userContext.UserId);
+                var result = await _messageService.DeleteMessageAsync(messageId, _userContext.UserId);
 
                 if (result.Success)
                 {
@@ -130,7 +130,7 @@ namespace CorpNetMessenger.Web.Hubs
             try
             {
                 // Проверка членства в чате
-                if (!await _chatService.UserInChat(chatId, _userContext.UserId))
+                if (!await _chatService.UserInChatAsync(chatId, _userContext.UserId))
                 {
                     await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                     return;

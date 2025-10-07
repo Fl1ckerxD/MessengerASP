@@ -28,7 +28,7 @@ namespace CorpNetMessenger.Tests.Services
             SetupFileCollection(largeFile);
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
-            _fileService.ProcessFiles(_mockFileCollection.Object));
+            _fileService.ProcessFilesAsync(_mockFileCollection.Object));
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace CorpNetMessenger.Tests.Services
             var file2 = CreateMockFile(fileNames[0], "image/jpeg", 200);
             SetupFileCollection(file1, file2);
 
-            var result = await _fileService.ProcessFiles(_mockFileCollection.Object);
+            var result = await _fileService.ProcessFilesAsync(_mockFileCollection.Object);
 
             result.Should().HaveCount(2);
             result.Select(f => f.FileName).Should().Contain(["file1.txt", "file2.jpg"]);

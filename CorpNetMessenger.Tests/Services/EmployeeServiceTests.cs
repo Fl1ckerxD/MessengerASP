@@ -36,7 +36,7 @@ namespace CorpNetMessenger.Tests.Services
         public async Task GetEmployeeInfo_WhenIdIsInvalid_ThrowsArgumentNullException(string? id)
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                _employeeService.GetEmployeeInfo(id)
+                _employeeService.GetEmployeeInfoAsync(id)
             );
         }
 
@@ -46,7 +46,7 @@ namespace CorpNetMessenger.Tests.Services
             _mockUnitOfWork
                 .Setup(u => u.Users.GetByIdWithDetailsAsync(It.IsAny<string>()))
                 .ReturnsAsync((User)null);
-            await Assert.ThrowsAsync<Exception>(() => _employeeService.GetEmployeeInfo("id"));
+            await Assert.ThrowsAsync<Exception>(() => _employeeService.GetEmployeeInfoAsync("id"));
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace CorpNetMessenger.Tests.Services
                 .Setup(u => u.Users.GetAllDepartmentContactsAsync(userId))
                 .ReturnsAsync(expectedContacts);
 
-            var result = await _employeeService.SearchEmployees("", departmentId, userId);
+            var result = await _employeeService.SearchEmployeesAsync("", departmentId, userId);
 
             Assert.Equal(expectedContacts.Count - 1, result.Count());
             _mockUnitOfWork.Verify(u => u.Users.GetAllDepartmentContactsAsync(userId), Times.Once);
@@ -98,7 +98,7 @@ namespace CorpNetMessenger.Tests.Services
                 .Setup(m => m.Map<List<ContactViewModel>>(It.IsAny<List<User>>()))
                 .Returns(expectedViewModels);
 
-            var result = await _employeeService.SearchEmployees(term, departmentId, userId);
+            var result = await _employeeService.SearchEmployeesAsync(term, departmentId, userId);
 
             Assert.Single(result);
             Assert.Equal("user2", result.First().Id);
@@ -123,7 +123,7 @@ namespace CorpNetMessenger.Tests.Services
                 .Setup(u => u.Users.GetAllDepartmentContactsAsync(userId))
                 .ReturnsAsync(emptyContacts);
 
-            var result = await _employeeService.SearchEmployees("", departmentId, userId);
+            var result = await _employeeService.SearchEmployeesAsync("", departmentId, userId);
 
             Assert.Empty(result);
         }
@@ -143,7 +143,7 @@ namespace CorpNetMessenger.Tests.Services
                 .Setup(m => m.Map<List<ContactViewModel>>(emptySearchResults))
                 .Returns(new List<ContactViewModel>());
 
-            var result = await _employeeService.SearchEmployees(term, departmentId, userId);
+            var result = await _employeeService.SearchEmployeesAsync(term, departmentId, userId);
 
             Assert.Empty(result);
         }

@@ -24,7 +24,7 @@ namespace CorpNetMessenger.Web.Areas.Admin.Controllers
         {
             try
             {
-                await _reqestService.AcceptNewUser(userId);
+                await _reqestService.AcceptNewUserAsync(userId);
                 return Ok();
             }
             catch (InvalidOperationException ex)
@@ -50,7 +50,7 @@ namespace CorpNetMessenger.Web.Areas.Admin.Controllers
         {
             try
             {
-                await _reqestService.RejectNewUser(userId);
+                await _reqestService.RejectNewUserAsync(userId);
                 return Ok();
             }
             catch (InvalidOperationException ex)

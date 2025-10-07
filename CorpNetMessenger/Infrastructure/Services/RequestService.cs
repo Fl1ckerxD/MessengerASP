@@ -20,14 +20,14 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="userId">ID пользователя</param>
         /// <exception cref="InvalidOperationException">Если пользователь не найден</exception>
-        public async Task AcceptNewUser(string userId)
+        public async Task AcceptNewUserAsync(string userId)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
                 throw new InvalidOperationException($"Пользователя с ID {userId} не существует");
 
             user.StatusId = StatusTypes.Active;
-            await _chatService.AddUserToDepartmentChat(user);
+            await _chatService.AddUserToDepartmentChatAsync(user);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="userId">ID пользователя</param>
         /// <exception cref="InvalidOperationException">Если пользователь не найден</exception>
-        public async Task RejectNewUser(string userId)
+        public async Task RejectNewUserAsync(string userId)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)

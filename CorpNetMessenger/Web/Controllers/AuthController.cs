@@ -49,7 +49,7 @@ namespace CorpNetMessenger.Web.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var result = await _accountService.Login(model);
+            var result = await _accountService.LoginAsync(model);
 
             if (result.Succeeded)
             {
@@ -80,7 +80,7 @@ namespace CorpNetMessenger.Web.Controllers
                     return View(model);
                 }
 
-                var result = await _accountService.Register(model);
+                var result = await _accountService.RegisterAsync(model);
 
                 if (result.Succeeded)
                 {
@@ -105,7 +105,7 @@ namespace CorpNetMessenger.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            await _accountService.Logout();
+            await _accountService.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
 

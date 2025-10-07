@@ -136,7 +136,7 @@ namespace CorpNetMessenger.Tests.Services
                 It.IsAny<Expression<Func<ChatUser, bool>>>()))
                 .ReturnsAsync(mockChatUser);
 
-            var result = await _chatService.UserInChat("chat1", "user1");
+            var result = await _chatService.UserInChatAsync("chat1", "user1");
 
             Assert.Equal(isUserInChat, result);
         }

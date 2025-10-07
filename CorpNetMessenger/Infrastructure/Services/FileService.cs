@@ -11,7 +11,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="files">Коллекция загруженных файлов (IFormFileCollection)</param>
         /// <returns>Список объектов Attachment с данными файлов</returns>
         /// <exception cref="ArgumentException">При превышении максимального размера файла (10MB)</exception>
-        public async Task<List<Attachment>> ProcessFiles(IFormFileCollection files)
+        public async Task<List<Attachment>> ProcessFilesAsync(IFormFileCollection files)
         {
             var result = new List<Attachment>();
             if (files == null || files.Count == 0)

@@ -5,7 +5,7 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
 {
     public interface IEmployeeService
     {
-        Task<EmployeeDto> GetEmployeeInfo(string id);
-        Task<IEnumerable<ContactViewModel>> SearchEmployees(string term, int departmentId, string userId);
+        Task<EmployeeDto> GetEmployeeInfoAsync(string id);
+        Task<IEnumerable<ContactViewModel>> SearchEmployeesAsync(string term, int departmentId, string userId);
     }
 }

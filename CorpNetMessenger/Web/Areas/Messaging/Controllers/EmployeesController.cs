@@ -26,7 +26,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         {
             try
             {
-                return Json(await _employeeService.GetEmployeeInfo(id));
+                return Json(await _employeeService.GetEmployeeInfoAsync(id));
             }
             catch (ArgumentNullException ex)
             {

@@ -54,7 +54,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                 return NotFound();
             }
             string currentUserId = _userContext.UserId;
-            bool isInChat = await _chatService.UserInChat(id, currentUserId);
+            bool isInChat = await _chatService.UserInChatAsync(id, currentUserId);
 
             if (!isInChat)
             {
@@ -114,7 +114,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         public async Task<IActionResult> SearchEmployees(string term)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(_userContext.UserId);
-            var employees = await _employeeService.SearchEmployees(term, user.DepartmentId.Value, user.Id);
+            var employees = await _employeeService.SearchEmployeesAsync(term, user.DepartmentId.Value, user.Id);
             return PartialView("_EmployeeListPartial", employees);
         }
     }

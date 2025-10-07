@@ -29,7 +29,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="model">Модель с данными для входа</param>
         /// <returns>Результат попытки входа</returns>
-        public async Task<SignInResult> Login(LoginViewModel model)
+        public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
@@ -95,7 +95,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <summary>
         /// Выход пользователя из системы
         /// </summary>
-        public async Task Logout()
+        public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
         }
@@ -105,7 +105,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="model">Модель с данными для регистрации</param>
         /// <returns>Результат регистрации</returns>
-        public async Task<IdentityResult> Register(RegisterViewModel model)
+        public async Task<IdentityResult> RegisterAsync(RegisterViewModel model)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));

@@ -40,7 +40,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="userId">Id пользователя отправившего сообщение</param>
         /// <param name="chatId">Чат в который было отправлено сообщение</param>
         /// <returns>Возвращает Id сохраненного сообщения</returns>
-        public async Task<string> SaveMessage(ChatMessageDto request, string userId)
+        public async Task<string> SaveMessageAsync(ChatMessageDto request, string userId)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
@@ -50,7 +50,7 @@ namespace CorpNetMessenger.Infrastructure.Services
 
             try
             {
-                bool chatUser = await _chatService.UserInChat(request.ChatId, userId);
+                bool chatUser = await _chatService.UserInChatAsync(request.ChatId, userId);
 
                 if (!chatUser)
                     throw new UnauthorizedAccessException("Пользователь не состоит в чате");
@@ -88,7 +88,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="messageId">Id конкретного сообщения для редактирования</param>
         /// <param name="newText">Отредактированный текст</param>
         /// <returns>Возвращает true если сообщение было отредактировано иначе false</returns>
-        public async Task<OperationResult> EditMessage(string messageId, string newText, string userId)
+        public async Task<OperationResult> EditMessageAsync(string messageId, string newText, string userId)
         {
             var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
 
@@ -170,7 +170,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="messageId">Идентификатор сообщения</param>
         /// <param name="userId">Идентификатор пользователя, инициирующего удаление</param>
         /// <returns>Результат операции</returns>
-        public async Task<OperationResult> DeleteMessage(string messageId, string userId)
+        public async Task<OperationResult> DeleteMessageAsync(string messageId, string userId)
         {
             try
             {
