@@ -6,23 +6,28 @@ namespace CorpNetMessenger.Infrastructure.Services
     public class FileService : IFileService
     {
         /// <summary>
-        /// Обрабатывает коллекцию загруженных файлов и преобразует их в список вложений
+        /// Обрабатывает коллекцию загруженных файлов и преобразует их в список вложений.
         /// </summary>
         /// <param name="files">Коллекция загруженных файлов (IFormFileCollection)</param>
         /// <returns>Список объектов Attachment с данными файлов</returns>
-        /// <exception cref="ArgumentException">При превышении максимального размера файла (10MB)</exception>
+        /// <exception cref="InvalidDataException">Если файл превышает допустимый размер или имеет недопустимый формат</exception>
         public async Task<List<Attachment>> ProcessFilesAsync(IFormFileCollection files)
         {
+            const long MaxFileSize = 10 * 1024 * 1024;
             var result = new List<Attachment>();
+
             if (files == null || files.Count == 0)
                 return result;
 
             foreach (var file in files)
             {
-                if (file.Length > 10 * 1024 * 1024) // 10 MB
-                    throw new ArgumentException($"Файл {file.FileName} слишком большой");
+                if (file == null || file.Length == 0)
+                    continue;
 
-                using var memoryStream = new MemoryStream();
+                if (file.Length > MaxFileSize)
+                    throw new InvalidDataException($"Файл {file.FileName} превышает максимально допустимый размер ({MaxFileSize} байт).");
+
+                using var memoryStream = new MemoryStream((int)Math.Min(file.Length, int.MaxValue));
                 await file.CopyToAsync(memoryStream);
 
                 result.Add(new Attachment
@@ -33,6 +38,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                     FileLength = file.Length
                 });
             }
+
             return result;
         }
     }
