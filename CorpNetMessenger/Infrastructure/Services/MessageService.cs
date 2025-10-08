@@ -1,5 +1,6 @@
 using AutoMapper;
 using CorpNetMessenger.Application.Common;
+using CorpNetMessenger.Application.Configs;
 using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
@@ -19,6 +20,10 @@ namespace CorpNetMessenger.Infrastructure.Services
         private readonly UserManager<User> _userManager;
         private readonly IChatService _chatService;
 
+        private const string RoleAdmin = "Admin";
+        private const string RoleMod = "Mod";
+        private const string CacheKeyPattern = "chat_history_{0}_skip{1}_take{2}";
+
         public MessageService(IUnitOfWork unitOfWork, ILogger<MessageService> logger,
             IMapper mapper, UserManager<User> userManager,
             IMemoryCache cache, IChatCacheService chatCacheService,
@@ -31,7 +36,7 @@ namespace CorpNetMessenger.Infrastructure.Services
             _cache = cache;
             _chatCacheService = chatCacheService;
             _chatService = chatService;
-        }    
+        }
 
         /// <summary>
         /// Сохранение сообщения в БД
@@ -42,23 +47,28 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <returns>Возвращает Id сохраненного сообщения</returns>
         public async Task<string> SaveMessageAsync(ChatMessageDto request, string userId)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
-
-            if (string.IsNullOrWhiteSpace(userId))
-                throw new ArgumentException("User ID не может быть пустым", nameof(userId));
+            ArgumentNullException.ThrowIfNull(request, nameof(request));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(userId, nameof(userId));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(request.ChatId, nameof(request.ChatId));
 
             try
             {
-                bool chatUser = await _chatService.UserInChatAsync(request.ChatId, userId);
+                bool isUserInChat = await _chatService.UserInChatAsync(request.ChatId, userId);
 
-                if (!chatUser)
+                if (!isUserInChat)
                     throw new UnauthorizedAccessException("Пользователь не состоит в чате");
+
+                var text = (request.Text ?? string.Empty).Trim();
+                if (text.Length > MessagingOptions.MaxMessageLength)
+                    throw new ArgumentException($"Длина сообщения превышает допустимый лимит ({MessagingOptions.MaxMessageLength})", nameof(request.Text));
+
+                if (request.Files != null && request.Files.Count > MessagingOptions.MaxFileCount)
+                    throw new ArgumentException($"Количество вложений превышает допустимый лимит ({MessagingOptions.MaxFileCount})", nameof(request.Files));
 
                 var message = new Message
                 {
                     ChatId = request.ChatId,
-                    Content = request.Text != null ? request.Text.Trim() : "",
+                    Content = text,
                     UserId = userId,
                     Attachments = request.Files
                 };
@@ -68,17 +78,20 @@ namespace CorpNetMessenger.Infrastructure.Services
 
                 return message.Id;
             }
-            catch (UnauthorizedAccessException ex)
+            catch (UnauthorizedAccessException)
             {
-                _logger.LogInformation(ex, "Пользователь {UserId} попытался отправить сообщение в чат {ChatId}",
-                userId, request?.ChatId);
-                throw ex;
+                _logger.LogInformation("Пользователь {UserId} попытался отправить сообщение в чат {ChatId}", userId, request?.ChatId);
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Операция сохранения сообщения отменена для пользователя {UserId}", userId);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при сохранении сообщения в чате {ChatId} пользователем {UserId}",
-                    request?.ChatId, userId);
-                throw new Exception("Ошибка сохранения сообщения", ex);
+                _logger.LogError(ex, "Ошибка при сохранении сообщения в чате {ChatId} пользователем {UserId}", request?.ChatId, userId);
+                throw;
             }
         }
 
@@ -101,7 +114,7 @@ namespace CorpNetMessenger.Infrastructure.Services
             if (string.IsNullOrWhiteSpace(newText))
                 return new OperationResult { Success = false, Error = "Текст не может быть пустым" };
 
-            if (newText.Length > 200)
+            if (newText.Length > MessagingOptions.MaxMessageLength)
                 return new OperationResult { Success = false, Error = "Сообщение слишком длинное" };
 
             message.Content = newText;
@@ -118,12 +131,20 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <exception cref="ArgumentNullException">Если сообщение с указанным ID не найдено</exception>
         public async Task<MessageDto> GetMessageAsync(string messageId)
         {
-            var messageEntity = await _unitOfWork.Messages.GetMessageWithDetailsAsync(messageId);
-            if (messageEntity == null)
-                throw new ArgumentNullException(nameof(messageId), "Сообщение не найдено");
+            try
+            {
+                var messageEntity = await _unitOfWork.Messages.GetMessageWithDetailsAsync(messageId);
+                if (messageEntity == null)
+                    throw new ArgumentNullException(nameof(messageId), "Сообщение не найдено");
 
-            var messageDto = _mapper.Map<MessageDto>(messageEntity);
-            return messageDto;
+                var messageDto = _mapper.Map<MessageDto>(messageEntity);
+                return messageDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при получении сообщения {MessageId}", messageId);
+                throw;
+            }
         }
 
         /// <summary>
@@ -135,22 +156,19 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <returns>Коллекцию сообщений в формате DTO</returns>
         public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
         {
-            if (string.IsNullOrWhiteSpace(chatId))
-                throw new ArgumentException("Chat ID не может быть пустым", nameof(chatId));
-
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(chatId, nameof(chatId));
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             if (take < 1 || take > 100) throw new ArgumentOutOfRangeException(nameof(take));
 
-            var cacheKey = $"chat_history_{chatId}_skip{skip}_take{take}";
-            _chatCacheService.RegisterCacheKey(chatId, cacheKey);
-            if (_cache.TryGetValue(cacheKey, out List<MessageDto> cachedMessages))
-            {
-                return cachedMessages;
-            }
-
             // Проверка существования чата
             if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId))
-                throw new Exception("Такого чата нет");
+                throw new KeyNotFoundException("Чат не найден");
+
+            var cacheKey = string.Format(CacheKeyPattern, chatId, skip, take);
+            _chatCacheService.RegisterCacheKey(chatId, cacheKey);
+
+            if (_cache.TryGetValue(cacheKey, out List<MessageDto> cachedMessages))
+                return cachedMessages;
 
             var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
             var messageDtos = _mapper.Map<List<MessageDto>>(messages);
@@ -184,13 +202,17 @@ namespace CorpNetMessenger.Infrastructure.Services
                 {
                     await _unitOfWork.Messages.DeleteAsync(messageId);
                     await _unitOfWork.SaveAsync();
-
                     return new OperationResult { Success = true };
                 }
 
+                // Получаем реального пользователя для проверки ролей
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                    return new OperationResult { Success = false, Error = "Пользователь не найден" };
+
                 // Проверка прав: админ или модератор может удалить любое сообщение
-                var userRoles = await _userManager.GetRolesAsync(new User { Id = userId });
-                var hasPermission = userRoles.Any(r => r == "Admin" || r == "Mod");
+                var userRoles = await _userManager.GetRolesAsync(user);
+                var hasPermission = userRoles.Any(r => r == RoleAdmin || r == RoleMod);
 
                 if (hasPermission)
                 {

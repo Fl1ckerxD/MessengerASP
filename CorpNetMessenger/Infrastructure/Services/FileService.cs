@@ -1,4 +1,5 @@
-﻿using CorpNetMessenger.Domain.Entities;
+﻿using CorpNetMessenger.Application.Configs;
+using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Services;
 
 namespace CorpNetMessenger.Infrastructure.Services
@@ -13,7 +14,6 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <exception cref="InvalidDataException">Если файл превышает допустимый размер или имеет недопустимый формат</exception>
         public async Task<List<Attachment>> ProcessFilesAsync(IFormFileCollection files)
         {
-            const long MaxFileSize = 10 * 1024 * 1024;
             var result = new List<Attachment>();
 
             if (files == null || files.Count == 0)
@@ -24,8 +24,8 @@ namespace CorpNetMessenger.Infrastructure.Services
                 if (file == null || file.Length == 0)
                     continue;
 
-                if (file.Length > MaxFileSize)
-                    throw new InvalidDataException($"Файл {file.FileName} превышает максимально допустимый размер ({MaxFileSize} байт).");
+                if (file.Length > MessagingOptions.MaxFileSize)
+                    throw new InvalidDataException($"Файл {file.FileName} превышает максимально допустимый размер ({MessagingOptions.MaxFileSize} байт).");
 
                 using var memoryStream = new MemoryStream((int)Math.Min(file.Length, int.MaxValue));
                 await file.CopyToAsync(memoryStream);

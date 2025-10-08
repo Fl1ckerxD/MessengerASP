@@ -1,11 +1,11 @@
-﻿using CorpNetMessenger.Domain.DTOs;
+﻿using CorpNetMessenger.Application.Configs;
+using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 {
@@ -14,10 +14,6 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
     [Route("api/[controller]")]
     public class MessagesController : Controller
     {
-        private const int MaxMessageLength = 200;
-        private const int MaxFileSize = 15 * 1024 * 1024; // 15MB
-        private const int MaxFileCount = 5;
-
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly ILogger<MessagesController> _logger;
         private readonly IChatService _chatService;
@@ -43,8 +39,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         }
 
         [HttpPost("send")]
-        [RequestSizeLimit(MaxFileSize)]
-        [RequestFormLimits(MultipartBodyLengthLimit = MaxFileSize, ValueCountLimit = MaxFileCount)] // Лимит до 5 файлов
+        [RequestSizeLimit(MessagingOptions.MaxFileSize)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MessagingOptions.MaxFileSize, ValueCountLimit = MessagingOptions.MaxFileCount)]
         public async Task<IActionResult> Send()
         {
             var form = await Request.ReadFormAsync();
@@ -59,8 +55,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             if (string.IsNullOrWhiteSpace(message) && !files.Any())
                 return BadRequest("Сообщение не может быть пустым");
 
-            if (message.Length > MaxMessageLength)
-                return BadRequest("Сообщение превышает 200 символов");
+            if (message.Length > MessagingOptions.MaxMessageLength)
+                return BadRequest($"Сообщение превышает {MessagingOptions.MaxMessageLength} символов");
 
             try
             {
