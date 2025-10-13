@@ -1,4 +1,5 @@
 using CorpNetMessenger.Application;
+using CorpNetMessenger.Domain.DTOs;
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
@@ -72,6 +73,17 @@ namespace MessengerASP
             builder.Services.AddScoped<IRequestService, RequestService>();
             builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<IUserContext, UserContext>();
+
+            var queueCapacity = 10000;
+            builder.Services.AddSingleton(new BoundedMessageQueue<Message>(queueCapacity));
+            builder.Services.AddSingleton<IMessageQueue<Message>>(sp => sp.GetRequiredService<BoundedMessageQueue<Message>>());
+            builder.Services.AddHostedService(sp => new MessageQueueBackgroundService<Message>(
+                sp.GetRequiredService<BoundedMessageQueue<Message>>(),
+                sp.GetRequiredService<IServiceScopeFactory>(),
+                sp.GetRequiredService<ILogger<MessageQueueBackgroundService<Message>>>(),
+                maxBatchSize: 50,
+                maxWait: TimeSpan.FromMilliseconds(200)
+            ));
 
             builder.Services.AddSingleton<IChatCacheService, ChatCacheService>();
 

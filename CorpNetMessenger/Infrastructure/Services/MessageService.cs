@@ -19,6 +19,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         private readonly IChatCacheService _chatCacheService;
         private readonly UserManager<User> _userManager;
         private readonly IChatService _chatService;
+        private readonly IMessageQueue<Message> _messageQueue;
 
         private const string RoleAdmin = "Admin";
         private const string RoleMod = "Mod";
@@ -27,7 +28,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         public MessageService(IUnitOfWork unitOfWork, ILogger<MessageService> logger,
             IMapper mapper, UserManager<User> userManager,
             IMemoryCache cache, IChatCacheService chatCacheService,
-            IChatService chatService)
+            IChatService chatService, IMessageQueue<Message> messageQueue)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -36,6 +37,7 @@ namespace CorpNetMessenger.Infrastructure.Services
             _cache = cache;
             _chatCacheService = chatCacheService;
             _chatService = chatService;
+            _messageQueue = messageQueue;
         }
 
         /// <summary>
@@ -45,7 +47,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="userId">Id пользователя отправившего сообщение</param>
         /// <param name="chatId">Чат в который было отправлено сообщение</param>
         /// <returns>Возвращает Id сохраненного сообщения</returns>
-        public async Task<string> SaveMessageAsync(ChatMessageDto request, string userId)
+        public async Task<MessageDto> SaveMessageAsync(ChatMessageDto request, string userId)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
             ArgumentNullException.ThrowIfNullOrWhiteSpace(userId, nameof(userId));
@@ -65,18 +67,35 @@ namespace CorpNetMessenger.Infrastructure.Services
                 if (request.Files != null && request.Files.Count > MessagingOptions.MaxFileCount)
                     throw new ArgumentException($"Количество вложений превышает допустимый лимит ({MessagingOptions.MaxFileCount})", nameof(request.Files));
 
+                // Создаём сущность сообщения и присваиваем Id заранее
                 var message = new Message
                 {
+                    Id = Guid.NewGuid().ToString(),
                     ChatId = request.ChatId,
                     Content = text,
                     UserId = userId,
                     Attachments = request.Files
                 };
 
-                await _unitOfWork.Messages.AddAsync(message);
-                await _unitOfWork.SaveAsync();
+                // Помещаем в очередь для фоновой записи
+                var enqueued = await _messageQueue.EnqueueAsync(message);
+                if (!enqueued)
+                {
+                    _logger.LogWarning("Очередь переполнена, не удалось поставить сообщение в очередь: user={UserId} chat={ChatId}", userId, request.ChatId);
+                    throw new InvalidOperationException("Сервис временно недоступен, попробуйте позже");
+                }
 
-                return message.Id;
+                var messageDto = _mapper.Map<MessageDto>(message);
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user != null)
+                {
+                    var userDto = _mapper.Map<UserDto>(user);
+                    messageDto.User = userDto;
+                }
+
+                // Возвращаем dto, запись в БД произойдёт фоновой задачей
+                return messageDto;
             }
             catch (UnauthorizedAccessException)
             {
@@ -137,8 +156,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                 if (messageEntity == null)
                     throw new ArgumentNullException(nameof(messageId), "Сообщение не найдено");
 
-                var messageDto = _mapper.Map<MessageDto>(messageEntity);
-                return messageDto;
+                return _mapper.Map<MessageDto>(messageEntity);
             }
             catch (Exception ex)
             {

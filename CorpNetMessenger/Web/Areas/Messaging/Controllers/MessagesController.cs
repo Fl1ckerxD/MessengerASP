@@ -68,8 +68,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                     Files = attachments
                 };
 
-                string messageId = await _messageService.SaveMessageAsync(chatMessageDto, _userContext.UserId);
-                var messageDto = await _messageService.GetMessageAsync(messageId);
+                var messageDto = await _messageService.SaveMessageAsync(chatMessageDto, _userContext.UserId);
 
                 _chatCacheService.InvalidateChatCache(chatId);
 
