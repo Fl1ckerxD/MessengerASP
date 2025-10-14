@@ -12,7 +12,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="files">Коллекция загруженных файлов (IFormFileCollection)</param>
         /// <returns>Список объектов Attachment с данными файлов</returns>
         /// <exception cref="InvalidDataException">Если файл превышает допустимый размер или имеет недопустимый формат</exception>
-        public async Task<List<Attachment>> ProcessFilesAsync(IFormFileCollection files)
+        public async Task<List<Attachment>> ProcessFilesAsync(IFormFileCollection files, CancellationToken cancellationToken = default)
         {
             var result = new List<Attachment>();
 
@@ -21,6 +21,8 @@ namespace CorpNetMessenger.Infrastructure.Services
 
             foreach (var file in files)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (file == null || file.Length == 0)
                     continue;
 
@@ -28,7 +30,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                     throw new InvalidDataException($"Файл {file.FileName} превышает максимально допустимый размер ({MessagingOptions.MaxFileSize} байт).");
 
                 using var memoryStream = new MemoryStream((int)Math.Min(file.Length, int.MaxValue));
-                await file.CopyToAsync(memoryStream);
+                await file.CopyToAsync(memoryStream, cancellationToken);
 
                 result.Add(new Attachment
                 {

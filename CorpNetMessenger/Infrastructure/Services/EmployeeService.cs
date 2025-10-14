@@ -26,11 +26,11 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <returns>DTO с информацией о сотруднике</returns>
         /// <exception cref="ArgumentNullException">Если id пустой или null</exception>
         /// <exception cref="KeyNotFoundException">Если сотрудник не найден</exception>
-        public async Task<EmployeeDto> GetEmployeeInfoAsync(string id)
+        public async Task<EmployeeDto> GetEmployeeInfoAsync(string id, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(id, nameof(id));
 
-            var employee = await _unitOfWork.Users.GetByIdWithDetailsAsync(id);
+            var employee = await _unitOfWork.Users.GetByIdWithDetailsAsync(id, cancellationToken);
             if (employee == null)
             {
                 _logger.LogWarning("Сотрудник с id {EmployeeId} не найден", id);
@@ -48,7 +48,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="departmentId">Идентификатор отдела</param>
         /// <param name="userId">Идентификатор текущего пользователя (будет исключен из результатов)</param>
         /// <returns>Список контактов сотрудников</returns>
-        public async Task<IEnumerable<ContactViewModel>> SearchEmployeesAsync(string term, int departmentId, string userId)
+        public async Task<IEnumerable<ContactViewModel>> SearchEmployeesAsync(string term, int departmentId, string userId, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(userId, nameof(userId));
 
@@ -56,14 +56,14 @@ namespace CorpNetMessenger.Infrastructure.Services
 
             if (string.IsNullOrWhiteSpace(term))
             {
-                var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId);
+                var contacts = await _unitOfWork.Users.GetAllDepartmentContactsAsync(userId, cancellationToken);
                 filteredContacts = _mapper.Map<List<ContactViewModel>>(contacts)
                 .Where(c => c.Id != userId)
                 .ToList();
             }
             else
             {
-                var search = await _unitOfWork.Users.SearchContactsByNameAsync(term, departmentId);
+                var search = await _unitOfWork.Users.SearchContactsByNameAsync(term, departmentId, cancellationToken);
                 filteredContacts = _mapper.Map<List<ContactViewModel>>(search)
                 .Where(c => c.Id != userId)
                 .ToList();

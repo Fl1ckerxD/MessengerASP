@@ -12,6 +12,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
         IRepository<Status> Statuses { get; }
         IUserRepository Users { get; }
         IChatUserRepository ChatUsers { get; }
-        Task<int> SaveAsync();
+        Task<int> SaveAsync(CancellationToken cancellationToken = default);
     }
 }

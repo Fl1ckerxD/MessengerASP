@@ -22,12 +22,12 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="userId">ID пользователя</param>
         /// <exception cref="InvalidOperationException">Если пользователь не найден</exception>
-        public async Task AcceptNewUserAsync(string userId)
+        public async Task AcceptNewUserAsync(string userId, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(userId, nameof(userId));
             try
             {
-                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
                 if (user == null)
                     throw new InvalidOperationException($"Пользователя с ID {userId} не существует");
 
@@ -38,7 +38,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                 }
 
                 user.StatusId = StatusTypes.Active;
-                await _chatService.AddUserToDepartmentChatAsync(user);
+                await _chatService.AddUserToDepartmentChatAsync(user, cancellationToken);
                 _logger.LogInformation("Пользователь {UserId} успешно одобрен и добавлен в чат", userId);
             }
             catch (Exception ex)
@@ -53,12 +53,12 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="userId">ID пользователя</param>
         /// <exception cref="InvalidOperationException">Если пользователь не найден</exception>
-        public async Task RejectNewUserAsync(string userId)
+        public async Task RejectNewUserAsync(string userId, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(userId, nameof(userId));
             try
             {
-                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                var user = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
                 if (user == null)
                     throw new InvalidOperationException($"Пользователя с ID {userId} не существует");
 
@@ -69,7 +69,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                 }
 
                 user.StatusId = StatusTypes.Rejected;
-                await _unitOfWork.SaveAsync();
+                await _unitOfWork.SaveAsync(cancellationToken);
                 _logger.LogInformation("Пользователь {UserId} отклонён", userId);
             }
             catch (Exception ex)

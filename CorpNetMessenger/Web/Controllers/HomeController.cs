@@ -22,12 +22,11 @@ namespace CorpNetMessenger.Web.Controllers
             _userContext = userContext;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             try
             {
-                var chat = await _chatService.GetDepartmentChatForUserAsync(_userContext.UserId);
-
+                var chat = await _chatService.GetDepartmentChatForUserAsync(_userContext.UserId, cancellationToken);
                 return Redirect($"/messaging/chat/{chat.Id}");
             }
             catch (Exception ex) when (ex is AuthenticationException || ex is InvalidOperationException)

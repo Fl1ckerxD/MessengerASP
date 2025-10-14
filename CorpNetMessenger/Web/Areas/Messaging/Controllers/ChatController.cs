@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
+﻿using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.Areas.Messaging.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -39,7 +38,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             _userContext = userContext;
         }
 
-        public async Task<IActionResult> Index(string id)
+        public async Task<IActionResult> Index(string id, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -47,14 +46,14 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                 return BadRequest("ID чата не указан");
             }
 
-            var chatExists = await _unitOfWork.Chats.AnyAsync(c => c.Id == id);
+            var chatExists = await _unitOfWork.Chats.AnyAsync(c => c.Id == id, cancellationToken);
             if (!chatExists)
             {
                 _logger.LogWarning("Чат {ChatId} не найден", id);
                 return NotFound();
             }
             string currentUserId = _userContext.UserId;
-            bool isInChat = await _chatService.UserInChatAsync(id, currentUserId);
+            bool isInChat = await _chatService.UserInChatAsync(id, currentUserId, cancellationToken);
 
             if (!isInChat)
             {
@@ -68,8 +67,8 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var messages = await _messageService.LoadHistoryChatAsync(id, take: 20);
-                var ChatName = (await _unitOfWork.Chats.GetByIdAsync(id)).Name;
+                var messages = await _messageService.LoadHistoryChatAsync(id, take: 20, cancellationToken: cancellationToken);
+                var ChatName = (await _unitOfWork.Chats.GetByIdAsync(id, cancellationToken)).Name;
 
                 var cacheContactsKey = $"contacts_chat_{id}";
                 var contacts = await _cache.GetOrCreateAsync(cacheContactsKey, async entry =>
@@ -83,9 +82,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                 var currentUser = contacts.FirstOrDefault(u => u.Id == currentUserId);
 
                 if (currentUser == null)
-                {
                     _logger.LogWarning("Текущий пользователь не найден в списке контактов");
-                }
 
                 var contactVM = new ContactPanelViewModel
                 {
@@ -111,10 +108,10 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
             }
         }
 
-        public async Task<IActionResult> SearchEmployees(string term)
+        public async Task<IActionResult> SearchEmployees(string term, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(_userContext.UserId);
-            var employees = await _employeeService.SearchEmployeesAsync(term, user.DepartmentId.Value, user.Id);
+            var user = await _unitOfWork.Users.GetByIdAsync(_userContext.UserId, cancellationToken);
+            var employees = await _employeeService.SearchEmployeesAsync(term, user.DepartmentId.Value, user.Id, cancellationToken);
             return PartialView("_EmployeeListPartial", employees);
         }
     }

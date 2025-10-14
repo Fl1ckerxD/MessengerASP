@@ -47,7 +47,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="userId">Id пользователя отправившего сообщение</param>
         /// <param name="chatId">Чат в который было отправлено сообщение</param>
         /// <returns>Возвращает Id сохраненного сообщения</returns>
-        public async Task<MessageDto> SaveMessageAsync(ChatMessageDto request, string userId)
+        public async Task<MessageDto> SaveMessageAsync(ChatMessageDto request, string userId, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request, nameof(request));
             ArgumentNullException.ThrowIfNullOrWhiteSpace(userId, nameof(userId));
@@ -55,7 +55,7 @@ namespace CorpNetMessenger.Infrastructure.Services
 
             try
             {
-                bool isUserInChat = await _chatService.UserInChatAsync(request.ChatId, userId);
+                bool isUserInChat = await _chatService.UserInChatAsync(request.ChatId, userId, cancellationToken);
 
                 if (!isUserInChat)
                     throw new UnauthorizedAccessException("Пользователь не состоит в чате");
@@ -78,7 +78,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                 };
 
                 // Помещаем в очередь для фоновой записи
-                var enqueued = await _messageQueue.EnqueueAsync(message);
+                var enqueued = await _messageQueue.EnqueueAsync(message, cancellationToken);
                 if (!enqueued)
                 {
                     _logger.LogWarning("Очередь переполнена, не удалось поставить сообщение в очередь: user={UserId} chat={ChatId}", userId, request.ChatId);
@@ -120,9 +120,9 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="messageId">Id конкретного сообщения для редактирования</param>
         /// <param name="newText">Отредактированный текст</param>
         /// <returns>Возвращает true если сообщение было отредактировано иначе false</returns>
-        public async Task<OperationResult> EditMessageAsync(string messageId, string newText, string userId)
+        public async Task<OperationResult> EditMessageAsync(string messageId, string newText, string userId, CancellationToken cancellationToken = default)
         {
-            var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+            var message = await _unitOfWork.Messages.GetByIdAsync(messageId, cancellationToken);
 
             if (message == null)
                 return new OperationResult { Success = false, Error = "Сообщение не найдено" };
@@ -137,7 +137,7 @@ namespace CorpNetMessenger.Infrastructure.Services
                 return new OperationResult { Success = false, Error = "Сообщение слишком длинное" };
 
             message.Content = newText;
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.SaveAsync(cancellationToken);
 
             return new OperationResult { Success = true };
         }
@@ -148,11 +148,11 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="messageId">Идентификатор сообщения</param>
         /// <returns>Объект <see cref="MessageDto"/>, представляющий сообщение с дополнительными данными</returns>
         /// <exception cref="ArgumentNullException">Если сообщение с указанным ID не найдено</exception>
-        public async Task<MessageDto> GetMessageAsync(string messageId)
+        public async Task<MessageDto> GetMessageAsync(string messageId, CancellationToken cancellationToken = default)
         {
             try
             {
-                var messageEntity = await _unitOfWork.Messages.GetMessageWithDetailsAsync(messageId);
+                var messageEntity = await _unitOfWork.Messages.GetMessageWithDetailsAsync(messageId, cancellationToken);
                 if (messageEntity == null)
                     throw new ArgumentNullException(nameof(messageId), "Сообщение не найдено");
 
@@ -172,14 +172,14 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="skip">Количество пропускаемых сообщений</param>
         /// <param name="take">Количество загружаемых сообщений (1-100)</param>
         /// <returns>Коллекцию сообщений в формате DTO</returns>
-        public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
+        public async Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNullOrWhiteSpace(chatId, nameof(chatId));
             if (skip < 0) throw new ArgumentOutOfRangeException(nameof(skip));
             if (take < 1 || take > 100) throw new ArgumentOutOfRangeException(nameof(take));
 
             // Проверка существования чата
-            if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId))
+            if (!await _unitOfWork.Chats.AnyAsync(c => c.Id == chatId, cancellationToken))
                 throw new KeyNotFoundException("Чат не найден");
 
             var cacheKey = string.Format(CacheKeyPattern, chatId, skip, take);
@@ -188,7 +188,7 @@ namespace CorpNetMessenger.Infrastructure.Services
             if (_cache.TryGetValue(cacheKey, out List<MessageDto> cachedMessages))
                 return cachedMessages;
 
-            var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take);
+            var messages = await _unitOfWork.Messages.LoadHistoryChatAsync(chatId, skip, take, cancellationToken);
             var messageDtos = _mapper.Map<List<MessageDto>>(messages);
 
             // Сохранение в кэш
@@ -206,20 +206,20 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <param name="messageId">Идентификатор сообщения</param>
         /// <param name="userId">Идентификатор пользователя, инициирующего удаление</param>
         /// <returns>Результат операции</returns>
-        public async Task<OperationResult> DeleteMessageAsync(string messageId, string userId)
+        public async Task<OperationResult> DeleteMessageAsync(string messageId, string userId, CancellationToken cancellationToken = default)
         {
             try
             {
                 // Поиск сообщения
-                var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
+                var message = await _unitOfWork.Messages.GetByIdAsync(messageId, cancellationToken);
                 if (message == null)
                     return new OperationResult { Success = false, Error = "Сообщение не найдено" };
 
                 // Проверка прав: автор может удалить свое сообщение
                 if (message.UserId == userId)
                 {
-                    await _unitOfWork.Messages.DeleteAsync(messageId);
-                    await _unitOfWork.SaveAsync();
+                    await _unitOfWork.Messages.DeleteAsync(messageId, cancellationToken);
+                    await _unitOfWork.SaveAsync(cancellationToken);
                     return new OperationResult { Success = true };
                 }
 
@@ -234,8 +234,8 @@ namespace CorpNetMessenger.Infrastructure.Services
 
                 if (hasPermission)
                 {
-                    await _unitOfWork.Messages.DeleteAsync(messageId);
-                    await _unitOfWork.SaveAsync();
+                    await _unitOfWork.Messages.DeleteAsync(messageId, cancellationToken);
+                    await _unitOfWork.SaveAsync(cancellationToken);
                     return new OperationResult { Success = true };
                 }
 

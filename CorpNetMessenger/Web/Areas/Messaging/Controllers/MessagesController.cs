@@ -41,15 +41,15 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         [HttpPost("send")]
         [RequestSizeLimit(MessagingOptions.MaxFileSize)]
         [RequestFormLimits(MultipartBodyLengthLimit = MessagingOptions.MaxFileSize, ValueCountLimit = MessagingOptions.MaxFileCount)]
-        public async Task<IActionResult> Send()
+        public async Task<IActionResult> Send(CancellationToken cancellationToken)
         {
-            var form = await Request.ReadFormAsync();
+            var form = await Request.ReadFormAsync(cancellationToken);
 
             var message = form["message"].ToString();
             var chatId = form["chatId"].ToString();
             var files = form.Files;
 
-            if (!await _chatService.UserInChatAsync(chatId, _userContext.UserId))
+            if (!await _chatService.UserInChatAsync(chatId, _userContext.UserId, cancellationToken))
                 return Forbid("Вы не состоите в этом чате");
 
             if (string.IsNullOrWhiteSpace(message) && !files.Any())
@@ -60,7 +60,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
 
             try
             {
-                var attachments = await _fileService.ProcessFilesAsync(files);
+                var attachments = await _fileService.ProcessFilesAsync(files, cancellationToken);
                 var chatMessageDto = new ChatMessageDto
                 {
                     ChatId = chatId,
@@ -68,7 +68,7 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
                     Files = attachments
                 };
 
-                var messageDto = await _messageService.SaveMessageAsync(chatMessageDto, _userContext.UserId);
+                var messageDto = await _messageService.SaveMessageAsync(chatMessageDto, _userContext.UserId, cancellationToken);
 
                 _chatCacheService.InvalidateChatCache(chatId);
 
@@ -85,9 +85,9 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         }
 
         [HttpGet("download/{id}")]
-        public async Task<IActionResult> DownloadFile(string id)
+        public async Task<IActionResult> DownloadFile(string id, CancellationToken cancellationToken)
         {
-            var attachment = await _unitOfWork.Files.GetByIdAsync(id);
+            var attachment = await _unitOfWork.Files.GetByIdAsync(id, cancellationToken);
 
             if (attachment == null)
                 return NotFound();

@@ -31,9 +31,9 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public IChatUserRepository ChatUsers => _chatUsers ??= new ChatUserRepository(_context);
 
-        public async Task<int> SaveAsync()
+        public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
         {
-            return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync(cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)

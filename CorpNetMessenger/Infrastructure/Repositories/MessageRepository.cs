@@ -11,7 +11,7 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<Message>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5)
+        public async Task<IEnumerable<Message>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5, CancellationToken cancellationToken = default)
         {
             return await _context.Messages // Получение сообщений из определенного чата 
                 .Where(m => m.ChatId == chatId)
@@ -20,15 +20,15 @@ namespace CorpNetMessenger.Infrastructure.Repositories
                 .OrderByDescending(m => m.SentAt)
                 .Skip(skip)
                 .Take(take)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<Message> GetMessageWithDetailsAsync(string id)
+        public async Task<Message> GetMessageWithDetailsAsync(string id, CancellationToken cancellationToken = default)
         {
             return await _context.Messages
                 .Include(m => m.User)
                 .Include(m => m.Attachments)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
         }
     }
 }

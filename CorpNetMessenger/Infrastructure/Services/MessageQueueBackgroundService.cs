@@ -1,8 +1,7 @@
 using CorpNetMessenger.Domain.Entities;
 using CorpNetMessenger.Domain.Interfaces.Repositories;
-using CorpNetMessenger.Infrastructure.Services;
 
-namespace CorpNetMessenger.Domain.Interfaces.Services
+namespace CorpNetMessenger.Infrastructure.Services
 {
     public class MessageQueueBackgroundService<T> : BackgroundService
     {

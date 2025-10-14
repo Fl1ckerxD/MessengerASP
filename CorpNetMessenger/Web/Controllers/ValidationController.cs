@@ -2,7 +2,6 @@
 using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Controllers
 {

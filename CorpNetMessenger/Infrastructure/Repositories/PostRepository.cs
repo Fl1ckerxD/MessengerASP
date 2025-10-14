@@ -11,12 +11,12 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<IEnumerable<DepartmentPost>> GetByDepartmentIdAsync(int departmentId)
+        public async Task<IEnumerable<DepartmentPost>> GetByDepartmentIdAsync(int departmentId, CancellationToken cancellationToken = default)
         {
             return await _context.DepartmentPost
                 .Include(dp => dp.Post)
                 .Where(dp => dp.DepartmentId == departmentId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

@@ -5,11 +5,11 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<IReadOnlyCollection<ContactViewModel>> GetAllDepartmentContactsAsync(int departmentId);
-        Task<IReadOnlyCollection<ContactViewModel>> GetAllDepartmentContactsAsync(string userId);
-        Task<List<User>> SearchContactsByNameAsync(string name, int departmentId);
-        Task<User> GetByIdWithDetailsAsync(string id);
-        Task<IEnumerable<User>> GetAllNewUsersAsync();
-        Task<IEnumerable<User>> GetAllUserWithDetailsAsync();
+        Task<IReadOnlyCollection<ContactViewModel>> GetAllDepartmentContactsAsync(int departmentId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyCollection<ContactViewModel>> GetAllDepartmentContactsAsync(string userId, CancellationToken cancellationToken = default);
+        Task<List<User>> SearchContactsByNameAsync(string name, int departmentId, CancellationToken cancellationToken = default);
+        Task<User> GetByIdWithDetailsAsync(string id, CancellationToken cancellationToken = default);
+        Task<IEnumerable<User>> GetAllNewUsersAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<User>> GetAllUserWithDetailsAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -20,11 +20,11 @@ namespace CorpNetMessenger.Web.Areas.Admin.Controllers
 
         [HttpPost("Accept")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AcceptNewUser([FromBody] string userId)
+        public async Task<IActionResult> AcceptNewUser([FromBody] string userId, CancellationToken cancellationToken)
         {
             try
             {
-                await _reqestService.AcceptNewUserAsync(userId);
+                await _reqestService.AcceptNewUserAsync(userId, cancellationToken);
                 return Ok();
             }
             catch (InvalidOperationException ex)
@@ -46,11 +46,11 @@ namespace CorpNetMessenger.Web.Areas.Admin.Controllers
 
         [HttpPost("Reject")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectNewUser([FromBody] string userId)
+        public async Task<IActionResult> RejectNewUser([FromBody] string userId, CancellationToken cancellationToken)
         {
             try
             {
-                await _reqestService.RejectNewUserAsync(userId);
+                await _reqestService.RejectNewUserAsync(userId, cancellationToken);
                 return Ok();
             }
             catch (InvalidOperationException ex)

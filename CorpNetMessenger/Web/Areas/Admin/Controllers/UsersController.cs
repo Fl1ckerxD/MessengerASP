@@ -19,15 +19,15 @@ namespace CorpNetMessenger.Web.Areas.Admin.Controllers
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List(CancellationToken cancellationToken)
         {
-            var users = await _unitOfWork.Users.GetAllUserWithDetailsAsync();
+            var users = await _unitOfWork.Users.GetAllUserWithDetailsAsync(cancellationToken);
             return View(_mapper.Map<IEnumerable<UsersTableViewModel>>(users));
         }
 
-        public async Task<IActionResult> Requests()
+        public async Task<IActionResult> Requests(CancellationToken cancellationToken)
         {
-            var requests = await _unitOfWork.Users.GetAllNewUsersAsync();
+            var requests = await _unitOfWork.Users.GetAllNewUsersAsync(cancellationToken);
             return View(_mapper.Map<IEnumerable<RequestViewModel>>(requests));
         }
     }
