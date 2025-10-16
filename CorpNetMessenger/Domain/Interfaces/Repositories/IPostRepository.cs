@@ -4,6 +4,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {
     public interface IPostRepository : IRepository<Post>
     {
-        Task<IEnumerable<DepartmentPost>> GetByDepartmentIdAsync(int departmentId);
+        Task<IEnumerable<DepartmentPost>> GetByDepartmentIdAsync(int departmentId, CancellationToken cancellationToken = default);
     }
 }

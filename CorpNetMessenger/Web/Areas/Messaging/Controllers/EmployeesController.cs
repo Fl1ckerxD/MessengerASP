@@ -21,12 +21,11 @@ namespace CorpNetMessenger.Web.Areas.Messaging.Controllers
         }
 
         [HttpGet]
-        [ResponseCache(Duration = 360, Location = ResponseCacheLocation.Any)]
-        public async Task<IActionResult> GetEmployeeInfo(string id)
+        public async Task<IActionResult> GetEmployeeInfo(string id, CancellationToken cancellationToken)
         {
             try
             {
-                return Json(await _employeeService.GetEmployeeInfo(id));
+                return Json(await _employeeService.GetEmployeeInfoAsync(id, cancellationToken));
             }
             catch (ArgumentNullException ex)
             {

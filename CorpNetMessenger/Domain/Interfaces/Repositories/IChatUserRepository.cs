@@ -5,6 +5,6 @@ namespace CorpNetMessenger.Domain.Interfaces.Repositories
 {
     public interface IChatUserRepository
     {
-        Task<ChatUser?> GetByPredicateAsync(Expression<Func<ChatUser, bool>> predicate);
+        Task<ChatUser?> GetByPredicateAsync(Expression<Func<ChatUser, bool>> predicate, CancellationToken cancellationToken = default);
     }
 }

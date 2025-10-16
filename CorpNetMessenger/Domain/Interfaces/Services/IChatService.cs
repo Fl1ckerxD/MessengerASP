@@ -1,21 +1,13 @@
-﻿using CorpNetMessenger.Application.Common;
-using CorpNetMessenger.Domain.DTOs;
-using CorpNetMessenger.Domain.Entities;
+﻿using CorpNetMessenger.Domain.Entities;
 
 namespace CorpNetMessenger.Domain.Interfaces.Services
 {
     public interface IChatService
     {
-        Task<string> SaveMessage(ChatMessageDto request, string userId);
-        Task<OperationResult> EditMessage(string messageId, string newText, string userId);
-        Task<OperationResult> DeleteMessage(string messageId, string userId);
-        Task<bool> UserInChat(string chatId, string userId);
-        Task<MessageDto> GetMessageAsync(string messageId);
-        Task<IEnumerable<MessageDto>> LoadHistoryChatAsync(string chatId, int skip = 0, int take = 5);
-        Task<Chat> GetDepartmentChatForUserAsync(string userId);
-        Task AddUserToChat(string userId, string chatId);
-        Task AddUserToChat(User user, Chat chat);
-        Task AddUserToChat(User user, string chatId);
-        Task AddUserToDepartmentChat(User user);
+        Task<bool> UserInChatAsync(string chatId, string userId, CancellationToken cancellationToken = default);
+        Task<Chat> GetDepartmentChatForUserAsync(string userId, CancellationToken cancellationToken = default);
+        Task AddUserToChatAsync(string userId, string chatId, CancellationToken cancellationToken = default);
+        Task AddUserToChatAsync(User user, string chatId, CancellationToken cancellationToken = default);
+        Task AddUserToDepartmentChatAsync(User user, CancellationToken cancellationToken = default);
     }
 }

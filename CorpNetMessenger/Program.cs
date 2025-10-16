@@ -10,8 +10,6 @@ using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.Serialization.Formatters;
-using System.Threading.Tasks;
 
 namespace MessengerASP
 {
@@ -27,7 +25,7 @@ namespace MessengerASP
                 options.ViewLocationExpanders.Add(new CustomViewLocationExpander());
             });
 
-            const string CONNECTION_STRING = "DockerConnection";
+            const string CONNECTION_STRING = "CorpNetMessenger";
             var conString = builder.Configuration.GetConnectionString(CONNECTION_STRING) ??
                 throw new InvalidOperationException($"Connection string '{CONNECTION_STRING}' not found.");
             builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
@@ -53,7 +51,6 @@ namespace MessengerASP
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Auth/Login";
-                options.ReturnUrlParameter = "243523";
             });
 
             builder.Services.AddResponseCompression(opt =>
@@ -73,6 +70,19 @@ namespace MessengerASP
             builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IRequestService, RequestService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
+            builder.Services.AddScoped<IUserContext, UserContext>();
+
+            var queueCapacity = 10000;
+            builder.Services.AddSingleton(new BoundedMessageQueue<Message>(queueCapacity));
+            builder.Services.AddSingleton<IMessageQueue<Message>>(sp => sp.GetRequiredService<BoundedMessageQueue<Message>>());
+            builder.Services.AddHostedService(sp => new MessageQueueBackgroundService<Message>(
+                sp.GetRequiredService<BoundedMessageQueue<Message>>(),
+                sp.GetRequiredService<IServiceScopeFactory>(),
+                sp.GetRequiredService<ILogger<MessageQueueBackgroundService<Message>>>(),
+                maxBatchSize: 50,
+                maxWait: TimeSpan.FromMilliseconds(200)
+            ));
 
             builder.Services.AddSingleton<IChatCacheService, ChatCacheService>();
 
@@ -109,13 +119,13 @@ namespace MessengerASP
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions()
             {
-               OnPrepareResponse = ctx =>
-               {
-                  ctx.Context.Response.Headers.Append(
+                OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers.Append(
                     "Cache-Control",
                     "public,max-age=2592000"
                     );
-               }
+                }
             });
 
             app.UseRouting();

@@ -3,7 +3,6 @@ using CorpNetMessenger.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
-using System.Security.Claims;
 
 namespace CorpNetMessenger.Web.Hubs
 {
@@ -13,56 +12,79 @@ namespace CorpNetMessenger.Web.Hubs
         private readonly ILogger<ChatHub> _logger;
         private readonly IChatService _chatService;
         private readonly IUnitOfWork _unitOfWork;
-        private static readonly ConcurrentDictionary<string, string> UserGroups = new();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _userGroups = new();
         private readonly IChatCacheService _chatCacheService;
+        private readonly IMessageService _messageService;
+        private readonly IUserContext _userContext;
         public ChatHub(ILogger<ChatHub> logger, IChatService chatService,
-            IUnitOfWork unitOfWork, IChatCacheService chatCacheService)
+            IUnitOfWork unitOfWork, IChatCacheService chatCacheService,
+            IMessageService messageService, IUserContext userContext)
         {
             _logger = logger;
             _chatService = chatService;
             _unitOfWork = unitOfWork;
             _chatCacheService = chatCacheService;
+            _messageService = messageService;
+            _userContext = userContext;
         }
 
         public async Task Enter(string chatId)
         {
-            string userId = GetUserId();
-            string connectionId = Context.ConnectionId;
-
-            // Проверка уже существующего подключения
-            if (UserGroups.TryGetValue(connectionId, out var currentChat))
+            if (string.IsNullOrWhiteSpace(chatId))
             {
-                if (currentChat == chatId) return; // Уже в этом чате
-                await Groups.RemoveFromGroupAsync(connectionId, currentChat);
+                await Clients.Caller.SendAsync("Error", "Неверный идентификатор чата");
+                return;
             }
 
-            bool isInChat = await _chatService.UserInChat(chatId, userId);
-            if (!isInChat)
+            string connectionId = Context.ConnectionId;
+            var userId = _userContext.UserId;
+            if (string.IsNullOrWhiteSpace(userId))
             {
+                await Clients.Caller.SendAsync("Error", "Неавторизованный пользователь");
+                return;
+            }
+
+            // Проверяем членство (перед добавлением в группу)
+            if (!await _chatService.UserInChatAsync(chatId, userId))
+            {
+                _logger.LogInformation("Вход запрещен: user={UserId} connection={ConnectionId} chat={ChatId}", userId, connectionId, chatId);
                 await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                 return;
             }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
-            UserGroups[connectionId] = chatId;
+            // Добавляем в группу SignalR и в нашу карту групп для соединения
+            await Groups.AddToGroupAsync(connectionId, chatId);
+            var groups = _userGroups.GetOrAdd(connectionId, _ => new ConcurrentDictionary<string, byte>());
+            groups.TryAdd(chatId, 0);
+            _logger.LogInformation("Пользователь присоединился к чату: user={UserId} connection={ConnectionId} chat={ChatId}", userId, connectionId, chatId);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             string connectionId = Context.ConnectionId;
-            if (UserGroups.TryRemove(connectionId, out var chatId))
+            if (_userGroups.TryRemove(connectionId, out var groups))
             {
-                await Groups.RemoveFromGroupAsync(connectionId, chatId);
+                // удаляем из всех групп, где был
+                var removeTasks = groups.Keys.Select(chatId => Groups.RemoveFromGroupAsync(connectionId, chatId));
+                await Task.WhenAll(removeTasks);
+                _logger.LogInformation("Соединение отключено и удалено из групп: connection={ConnectionId}", connectionId);
             }
             await base.OnDisconnectedAsync(exception);
         }
 
         public async Task EditMessage(string messageId, string newText, string chatId)
         {
+            var connectionId = Context.ConnectionId;
+            var userId = _userContext.UserId;
+
+            if (string.IsNullOrWhiteSpace(messageId) || string.IsNullOrWhiteSpace(chatId) || string.IsNullOrWhiteSpace(userId))
+            {
+                await Clients.Caller.SendAsync("Error", "Неверные параметры");
+                return;
+            }
+
             try
             {
-                string userId = GetUserId();
-
                 // Проверка принадлежности соощения чату
                 var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
                 if (message == null || message.ChatId != chatId)
@@ -72,35 +94,41 @@ namespace CorpNetMessenger.Web.Hubs
                 }
 
                 // Проверка членства в чате
-                if (!await _chatService.UserInChat(chatId, userId))
+                if (!await _chatService.UserInChatAsync(chatId, userId))
                 {
                     await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                     return;
                 }
 
-                var result = await _chatService.EditMessage(messageId, newText, userId);
-
+                var result = await _messageService.EditMessageAsync(messageId, newText, userId);
                 if (result.Success)
                 {
                     _chatCacheService.InvalidateChatCache(chatId);
-                    Clients.Group(chatId).SendAsync("UpdateMessage", messageId, newText);
+                    await Clients.Group(chatId).SendAsync("UpdateMessage", messageId, newText);
                 }
                 else
                     await Clients.Caller.SendAsync("Error", result.Error);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка редактирования сообщения");
+                _logger.LogError(ex, "Ошибка редактирования сообщения user={UserId} connection={ConnectionId} message={MessageId}", userId, connectionId, messageId);
                 await Clients.Caller.SendAsync("Error", "Внутренняя ошибка сервера");
             }
         }
 
         public async Task DeleteMessage(string messageId, string chatId)
         {
+            var connectionId = Context.ConnectionId;
+            var userId = _userContext.UserId;
+
+            if (string.IsNullOrWhiteSpace(messageId) || string.IsNullOrWhiteSpace(chatId) || string.IsNullOrWhiteSpace(userId))
+            {
+                await Clients.Caller.SendAsync("Error", "Неверные параметры");
+                return;
+            }
+
             try
             {
-                string userId = GetUserId();
-
                 // Проверка принадлежности соощения чату
                 var message = await _unitOfWork.Messages.GetByIdAsync(messageId);
                 if (message == null || message.ChatId != chatId)
@@ -109,8 +137,7 @@ namespace CorpNetMessenger.Web.Hubs
                     return;
                 }
 
-                var result = await _chatService.DeleteMessage(messageId, userId);
-
+                var result = await _messageService.DeleteMessageAsync(messageId, userId);
                 if (result.Success)
                 {
                     _chatCacheService.InvalidateChatCache(chatId);
@@ -121,19 +148,26 @@ namespace CorpNetMessenger.Web.Hubs
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка удаления сообщения {MessageId}", messageId);
+                _logger.LogError(ex, "Ошибка удаления сообщения {MessageId} user={UserId} connection={ConnectionId}", messageId, userId, connectionId);
                 await Clients.Caller.SendAsync("Error", "Ошибка при удалении сообщения");
             }
         }
 
         public async Task LoadHistory(string chatId, int skip = 0, int take = 5)
         {
+            var connectionId = Context.ConnectionId;
+            var userId = _userContext.UserId;
+
+            if (string.IsNullOrWhiteSpace(chatId) || string.IsNullOrWhiteSpace(userId))
+            {
+                await Clients.Caller.SendAsync("Error", "Неверные параметры");
+                return;
+            }
+
             try
             {
-                string userId = GetUserId();
-
                 // Проверка членства в чате
-                if (!await _chatService.UserInChat(chatId, userId))
+                if (!await _chatService.UserInChatAsync(chatId, userId))
                 {
                     await Clients.Caller.SendAsync("Error", "Доступ запрещён");
                     return;
@@ -142,20 +176,14 @@ namespace CorpNetMessenger.Web.Hubs
                 // Ограничиваем размер выборки
                 take = Math.Clamp(take, 1, 50);
 
-                var messages = await _chatService.LoadHistoryChatAsync(chatId, skip, take);
+                var messages = await _messageService.LoadHistoryChatAsync(chatId, skip, take);
                 await Clients.Caller.SendAsync("ReceiveHistory", messages);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка загрузки истории для чата {ChatId}", chatId);
+                _logger.LogError(ex, "Ошибка загрузки истории для чата {ChatId} user={UserId} connection={ConnectionId}", chatId, userId, connectionId);
                 await Clients.Caller.SendAsync("Error", "Ошибка загрузки истории");
             }
-        }
-
-        private string GetUserId()
-        {
-            var user = Context.User;
-            return user.FindFirstValue(ClaimTypes.NameIdentifier);
         }
     }
 }

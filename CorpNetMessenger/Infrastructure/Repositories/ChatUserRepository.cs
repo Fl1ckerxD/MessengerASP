@@ -12,9 +12,9 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<ChatUser?> GetByPredicateAsync(Expression<Func<ChatUser, bool>> predicate)
+        public async Task<ChatUser?> GetByPredicateAsync(Expression<Func<ChatUser, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            return await _context.ChatUsers.FirstOrDefaultAsync(predicate);
+            return await _context.ChatUsers.FirstOrDefaultAsync(predicate, cancellationToken);
         }
     }
 }

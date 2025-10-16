@@ -1,11 +1,6 @@
 ﻿using CorpNetMessenger.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 
 namespace CorpNetMessenger.Tests.Services
@@ -27,8 +22,8 @@ namespace CorpNetMessenger.Tests.Services
             var largeFile = CreateMockFile("test.jpg", "image/jpeg", 11 * 1024 * 1024);
             SetupFileCollection(largeFile);
 
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-            _fileService.ProcessFiles(_mockFileCollection.Object));
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+            _fileService.ProcessFilesAsync(_mockFileCollection.Object));
         }
 
         [Fact]
@@ -39,7 +34,7 @@ namespace CorpNetMessenger.Tests.Services
             var file2 = CreateMockFile(fileNames[0], "image/jpeg", 200);
             SetupFileCollection(file1, file2);
 
-            var result = await _fileService.ProcessFiles(_mockFileCollection.Object);
+            var result = await _fileService.ProcessFilesAsync(_mockFileCollection.Object);
 
             result.Should().HaveCount(2);
             result.Select(f => f.FileName).Should().Contain(["file1.txt", "file2.jpg"]);

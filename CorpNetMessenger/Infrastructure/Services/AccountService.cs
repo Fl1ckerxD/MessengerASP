@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CorpNetMessenger.Application.Configs;
 using CorpNetMessenger.Domain.Entities;
-using CorpNetMessenger.Domain.Interfaces.Repositories;
 using CorpNetMessenger.Domain.Interfaces.Services;
 using CorpNetMessenger.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -30,11 +29,20 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="model">Модель с данными для входа</param>
         /// <returns>Результат попытки входа</returns>
-        public async Task<SignInResult> Login(LoginViewModel model)
+        public async Task<SignInResult> LoginAsync(LoginViewModel model, CancellationToken cancellationToken = default)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             try
             {
                 var user = await _userManager.FindByNameAsync(model.UserName);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("Попытка входа с несуществующим пользователем: {UserName}", model.UserName);
+                    return SignInResult.Failed;
+                }
 
                 if (user.StatusId != StatusTypes.Active)
                     return SignInResult.NotAllowed;
@@ -87,7 +95,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <summary>
         /// Выход пользователя из системы
         /// </summary>
-        public async Task Logout()
+        public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
         }
@@ -97,8 +105,11 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// </summary>
         /// <param name="model">Модель с данными для регистрации</param>
         /// <returns>Результат регистрации</returns>
-        public async Task<IdentityResult> Register(RegisterViewModel model)
+        public async Task<IdentityResult> RegisterAsync(RegisterViewModel model, CancellationToken cancellationToken = default)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             try
             {
                 if (await _userManager.FindByEmailAsync(model.Email) != null)

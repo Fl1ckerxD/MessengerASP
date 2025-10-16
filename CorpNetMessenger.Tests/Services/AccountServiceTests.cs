@@ -60,7 +60,7 @@ namespace CorpNetMessenger.Tests.Services
             _userManagerMock.Setup(x => x.GetClaimsAsync(user))
                 .ReturnsAsync(new List<Claim>());
 
-            var result = await _accountService.Login(model);
+            var result = await _accountService.LoginAsync(model);
 
             Assert.Equal(SignInResult.Success, result);
             _userManagerMock.Verify(x => x.AddClaimAsync(
@@ -82,7 +82,7 @@ namespace CorpNetMessenger.Tests.Services
                 model.UserName, model.Password, model.RememberMe, false))
                 .ReturnsAsync(SignInResult.Failed);
 
-            var result = await _accountService.Login(model);
+            var result = await _accountService.LoginAsync(model);
 
             Assert.Equal(SignInResult.Failed, result);
             _userManagerMock.Verify(x => x.AddClaimAsync(It.IsAny<User>(), It.IsAny<Claim>()), Times.Never);
@@ -103,7 +103,7 @@ namespace CorpNetMessenger.Tests.Services
             _userManagerMock.Setup(x => x.FindByNameAsync(model.UserName))
                 .ReturnsAsync(user);
 
-            var result = await _accountService.Login(model);
+            var result = await _accountService.LoginAsync(model);
 
             Assert.Equal(SignInResult.NotAllowed, result);
             _signInManagerMock.Verify(x => x.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false), Times.Never);
@@ -132,7 +132,7 @@ namespace CorpNetMessenger.Tests.Services
             _userManagerMock.Setup(x => x.CreateAsync(user, model.Password))
                 .ReturnsAsync(IdentityResult.Success);
 
-            var result = await _accountService.Register(model);
+            var result = await _accountService.RegisterAsync(model);
 
             Assert.True(result.Succeeded);
             _userManagerMock.Verify(x => x.CreateAsync(user, model.Password), Times.Once);
@@ -151,7 +151,7 @@ namespace CorpNetMessenger.Tests.Services
             _userManagerMock.Setup(x => x.FindByEmailAsync(model.Email))
                 .ReturnsAsync(new User());
 
-            var result = await _accountService.Register(model);
+            var result = await _accountService.RegisterAsync(model);
 
             Assert.False(result.Succeeded);
             Assert.Contains("Такая почта уже используется", result.Errors.First().Description);
@@ -161,7 +161,7 @@ namespace CorpNetMessenger.Tests.Services
         [Fact]
         public async Task Logout_CallsSignOutAsync()
         {
-            await _accountService.Logout();
+            await _accountService.LogoutAsync();
 
             _signInManagerMock.Verify(x => x.SignOutAsync(), Times.Once);
         }

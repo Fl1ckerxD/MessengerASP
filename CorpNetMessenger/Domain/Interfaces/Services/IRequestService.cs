@@ -2,7 +2,7 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
 {
     public interface IRequestService
     {
-        Task AcceptNewUser(string userId);
-        Task RejectNewUser(string userId);
+        Task AcceptNewUserAsync(string userId, CancellationToken cancellationToken = default);
+        Task RejectNewUserAsync(string userId, CancellationToken cancellationToken = default);
     }
 }

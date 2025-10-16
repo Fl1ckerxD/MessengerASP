@@ -11,9 +11,9 @@ namespace CorpNetMessenger.Infrastructure.Repositories
         {
         }
 
-        public async Task<Chat?> GetByDepartmentIdAsync(int id)
+        public async Task<Chat?> GetByDepartmentIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            return await _context.Chats.FirstOrDefaultAsync(c => c.DepartmentId == id);
+            return await _context.Chats.FirstOrDefaultAsync(c => c.DepartmentId == id, cancellationToken);
         }
     }
 }

@@ -5,8 +5,8 @@ namespace CorpNetMessenger.Domain.Interfaces.Services
 {
     public interface IAccountService
     {
-        Task<IdentityResult> Register(RegisterViewModel model);
-        Task<SignInResult> Login(LoginViewModel user);
-        Task Logout();
+        Task<IdentityResult> RegisterAsync(RegisterViewModel model, CancellationToken cancellationToken = default);
+        Task<SignInResult> LoginAsync(LoginViewModel user, CancellationToken cancellationToken = default);
+        Task LogoutAsync();
     }
 }
