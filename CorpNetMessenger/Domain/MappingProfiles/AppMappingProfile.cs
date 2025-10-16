@@ -17,8 +17,8 @@ namespace CorpNetMessenger.Domain.MappingProfiles
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Login));
 
             CreateMap<Message, MessageDto>()
-               .ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Content))
-               .ForMember(dest => dest.SentAt, opt => opt.MapFrom(src => src.SentAt.ToString("dd.MM.yyyy HH:mm:ss")));
+                .ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Content))
+                .ForMember(dest => dest.SentAt, opt => opt.MapFrom(src => src.SentAt.ToString("dd.MM.yyyy HH:mm:ss")));
 
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.LastName} {src.Name}"));

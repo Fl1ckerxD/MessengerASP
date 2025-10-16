@@ -28,7 +28,7 @@ namespace CorpNetMessenger.Infrastructure.Services
         /// <exception cref="KeyNotFoundException">Если сотрудник не найден</exception>
         public async Task<EmployeeDto> GetEmployeeInfoAsync(string id, CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNullOrEmpty(id, nameof(id));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(id, nameof(id));
 
             var employee = await _unitOfWork.Users.GetByIdWithDetailsAsync(id, cancellationToken);
             if (employee == null)

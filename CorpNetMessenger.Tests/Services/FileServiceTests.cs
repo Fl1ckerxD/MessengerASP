@@ -1,11 +1,6 @@
 ﻿using CorpNetMessenger.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 
 namespace CorpNetMessenger.Tests.Services
@@ -27,7 +22,7 @@ namespace CorpNetMessenger.Tests.Services
             var largeFile = CreateMockFile("test.jpg", "image/jpeg", 11 * 1024 * 1024);
             SetupFileCollection(largeFile);
 
-            await Assert.ThrowsAsync<ArgumentException>(() =>
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
             _fileService.ProcessFilesAsync(_mockFileCollection.Object));
         }
 

@@ -1,4 +1,6 @@
 ﻿using CorpNetMessenger.Domain.Entities;
+using CorpNetMessenger.Domain.Interfaces.Services;
+using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -11,26 +13,31 @@ namespace CorpNetMessenger.Tests.Controllers
     public class ValidationControllerTests
     {
         private readonly Mock<UserManager<User>> _userManagerMock;
+        private readonly Mock<IUserContext> _userContextMock;
         private readonly ValidationController _controller;
 
         public ValidationControllerTests()
         {
+            _userContextMock = new Mock<IUserContext>();
+            _userContextMock.Setup(uc => uc.UserId).Returns("testUserId");
+
             var userStoreMock = new Mock<IUserStore<User>>();
             _userManagerMock = new Mock<UserManager<User>>(
                 userStoreMock.Object, null, null, null, null, null, null, null, null);
 
-            _controller = new ValidationController(_userManagerMock.Object);
+            _controller = new ValidationController(_userManagerMock.Object, _userContextMock.Object);
         }
 
         [Fact]
         public async Task IsEmailUnique_EmailNotExists_ReturnsTrue()
         {
-            _userManagerMock.Setup(x => x.FindByEmailAsync("new@example.com"))
+            string email = "new@example.com";
+            _userManagerMock.Setup(x => x.FindByEmailAsync(email))
                 .ReturnsAsync((User)null);
 
             SetupUserContext("userId");
 
-            var result = await _controller.IsEmailUnique("new@example.com");
+            var result = await _controller.IsEmailUnique(email);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.True((bool)jsonResult.Value);
@@ -40,15 +47,15 @@ namespace CorpNetMessenger.Tests.Controllers
         public async Task IsEmailUnique_EmailExistsButBelongsToCurrentUser_ReturnsTrue()
         {
             // Arrange
-            var currentUserId = "currentUserId";
+            var currentUserId = "testUserId";
             var existingUser = new User { Id = currentUserId, Email = "existing@example.com" };
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync("existing@example.com"))
+            _userManagerMock.Setup(x => x.FindByEmailAsync(existingUser.Email))
                 .ReturnsAsync(existingUser);
 
             SetupUserContext(currentUserId);
 
-            var result = await _controller.IsEmailUnique("existing@example.com");
+            var result = await _controller.IsEmailUnique(existingUser.Email);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             Assert.True((bool)jsonResult.Value);
