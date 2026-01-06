@@ -140,7 +140,3 @@ docker compose up --build
 
 - Email: mihaylov.slava@outlook.com
 - Telegram: @Fl1cker_0
-
-```
-
-```
