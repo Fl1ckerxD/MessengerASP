@@ -9,6 +9,7 @@ using CorpNetMessenger.Infrastructure.Repositories;
 using CorpNetMessenger.Infrastructure.Services;
 using CorpNetMessenger.Web.Hubs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace MessengerASP
@@ -25,10 +26,18 @@ namespace MessengerASP
                 options.ViewLocationExpanders.Add(new CustomViewLocationExpander());
             });
 
-            const string CONNECTION_STRING = "CorpNetMessenger";
-            var conString = builder.Configuration.GetConnectionString(CONNECTION_STRING) ??
-                throw new InvalidOperationException($"Connection string '{CONNECTION_STRING}' not found.");
-            builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(conString));
+            var dbConnectionString = builder.Configuration.GetConnectionString(nameof(MessengerContext)) ??
+                throw new InvalidOperationException($"Connection string not found.");
+
+            var dbPassword = builder.Configuration["MSSQL_SA_PASSWORD"] ??
+                throw new InvalidOperationException("MSSQL_SA_PASSWORD is not set");
+
+            var csb = new SqlConnectionStringBuilder(dbConnectionString)
+            {
+                Password = dbPassword
+            };
+
+            builder.Services.AddDbContext<MessengerContext>(options => options.UseSqlServer(csb.ConnectionString));
 
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
@@ -115,7 +124,7 @@ namespace MessengerASP
 
             app.UseHttpsRedirection();
             app.UseResponseCompression();
-            
+
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions()
             {
@@ -145,7 +154,7 @@ namespace MessengerASP
                     name: "Messaging",
                     areaName: "Messaging",
                     pattern: "Messaging/Chat/{id}",
-                    defaults: new { controller = "Chat", action = "Index" });        
+                    defaults: new { controller = "Chat", action = "Index" });
 
             app.MapControllerRoute(
                     name: "default",
